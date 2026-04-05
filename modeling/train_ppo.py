@@ -15,7 +15,7 @@ import farmgame_io
 from farm_env import FarmEnv
 
 # Configure logging
-log_file = "training_output.txt"
+log_file = os.path.join(os.path.dirname(__file__), "training_output.txt")
 # Clear the log file on startup
 with open(log_file, "w") as f:
     f.write("")
