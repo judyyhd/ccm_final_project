@@ -117,23 +117,64 @@ Each CSV includes agent and human data for direct comparison and plotting.
 
 ### Core Game Implementation
 - **`modeling/farmgame.py`** - Game state, actions, and rules
+  - `state.reward(color)` — returns final score (score × remaining energy) when game is done
+  - `state.legal_actions()` — returns list of valid actions for current player
+  - `state.take_action(action)` — updates state and returns new state
 - **`modeling/farmgame_io.py`** - Load human sessions from CSV
 
 ### New RL Pipeline (This Project)
 - **`farm_env.py`** - Gymnasium environment wrapper
-  - Observation: agent/partner positions, energy, backpack fill, items, history
-  - Action space: Discrete(16) mapped to legal actions
-  - Four reward modes for different hypotheses about human motivation
+  - **Observation space** (60-dim float32): agent position, partner position, energy, backpack fill, items (location, color ownership, status), partner helping history
+  - **Action space**: Discrete(16) mapped to legal actions; invalid actions fallback to last legal action
+  - **Grid size**: 26×26 (normalized to [0,1])
+  - **Reward modes**: Selfish, capacity, proximity, reciprocity (see table above)
+  - **Key implementation**: Auto-steps through partner turns using human replay; captures pre-action backpack state for accurate capacity rewards
   
 - **`train_ppo.py`** - Training script
+  - Loads all human sessions and creates vectorized environments
   - Uses `stable-baselines3.PPO` with MlpPolicy
-  - Vectorized environments with human replay data
-  - 500k timesteps per reward mode
+  - Hyperparameters: `n_steps=512, batch_size=64, n_epochs=10, gamma=0.99, ent_coef=0.01`
+  - 500k timesteps per reward mode (~2-4 hours per mode on CPU)
+  - Saves trained models to `models/ppo_{reward_mode}.zip`
   
 - **`evaluate.py`** - Evaluation script
-  - Runs trained agents against human replay data
-  - Computes 5 behavioral metrics
+  - Runs trained agents through human replay data and collects behavioral metrics
+  - Filters human data to match agent color and computes 5 metrics
   - Outputs comparison CSVs and summary statistics
+
+## Implementation Details
+
+### Reward Computation
+
+All reward modes follow this pattern:
+- **At final state**: `reward = state.reward(agent_color)` (score × energy)
+- **At intermediate steps**: Mode-specific shaping of helping actions (picking partner vegetables)
+
+**Capacity reward** uses pre-action backpack state:
+```
+if helping_action:
+    spare_capacity = (capacity - pre_action_contents) / capacity
+    reward = spare_capacity
+```
+
+This ensures fair measurement of spare capacity at decision time, not after the item is picked up.
+
+### Environment Gotchas
+
+1. **Grid coordinates**: Game uses 0–25 range; normalized to [0,1] for neural network
+2. **Turn handling**: Reset() auto-steps through any partner turns at game start
+3. **Replay exhaustion**: If human replay runs out, environment falls back to first legal action
+4. **Helping definition**: Must pick up *partner-colored* vegetable from *farm* status (not already in backpack)
+
+## Bug Fixes (Version 2)
+
+Recent fixes applied to improve correctness:
+- ✅ Replaced nonexistent `playersDict` with direct `state.redplayer`/`state.purpleplayer` access
+- ✅ Implemented proper reward mode dispatcher instead of single computation path
+- ✅ Use `state.reward()` instead of unreliable `bonuspoints` field
+- ✅ Moved partner turn auto-stepping to `reset()` to prevent double-advancing replay index
+- ✅ Increased grid dimensions to 26 to handle full coordinate range
+- ✅ Capture pre-action backpack state for accurate capacity reward calculation
 
 ## Dependencies
 
@@ -150,6 +191,16 @@ Key packages (see `environment.yml`):
 - [ ] Analyze learned value functions to understand decision-making
 - [ ] Test agents in novel environments not seen in training
 - [ ] Compare to other RL algorithms (A2C, DQN, etc.)
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| `FileNotFoundError: data/trialdf.csv` | Run from `modeling/` directory; use relative path `../data/trialdf.csv` |
+| `AttributeError: 'dict' object has no attribute 'predict'` | Update to latest farm_env.py; variable shadowing bug fixed |
+| `KeyError: 'ownBPsize'` | CSV columns may vary; evaluate.py uses `.get()` with fallback defaults |
+| Models not saving | Ensure `models/` directory exists; train_ppo.py creates it automatically |
+| Grid normalization errors | Grid is 26×26; if you see coordinates >25, increase GRID_WIDTH/GRID_HEIGHT |
 
 ## References
 
