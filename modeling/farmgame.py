@@ -4,6 +4,7 @@ from enum import Enum
 from typing import NamedTuple
 import copy
 import csv
+import os
 import random
 import utils
 
@@ -59,7 +60,8 @@ except:
 class Farm:
     objectlayers = {}
     # configure how to get list of veggies from a given starting setup (one of the twelve object layers)
-    with open("config/objectLayers.csv", "r") as data:
+    config_path = os.path.join(os.path.dirname(__file__), "config/objectLayers.csv")
+    with open(config_path, "r") as data:
         for line in csv.DictReader(data):
             layername = line["objectLayer"]
             farmitems = line["farmItems"].strip("']['").split(" ")
