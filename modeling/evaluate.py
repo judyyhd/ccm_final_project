@@ -49,6 +49,11 @@ def _build_patch_uniformity_map(trialdf_path: str) -> dict:
     
     df = pd.read_csv(trialdf_path)
     
+    # Check if patchUniformity column exists
+    if "patchUniformity" not in df.columns:
+        logger.warning("Column 'patchUniformity' not found in trialdf.csv")
+        return {}
+    
     # Drop rows with NaN in objectLayer or patchUniformity
     df = df.dropna(subset=["objectLayer", "patchUniformity"])
     
@@ -63,6 +68,8 @@ def _build_patch_uniformity_map(trialdf_path: str) -> dict:
         logger.warning("No valid patchUniformity mappings found in trialdf.csv")
         patch_map = {}
     
+    return patch_map
+
     return patch_map
 
 
@@ -227,6 +234,15 @@ def compute_metric_1_backpack_size(agent_metrics_list, human_metrics_list):
 def compute_metric_2_patch_uniformity(agent_metrics_list, human_metrics_list, patch_uniformity_map: dict):
     """Helpfulness by patch uniformity (True=Uniform, False=Non-uniform)."""
     if not agent_metrics_list or not human_metrics_list:
+        return {
+            "patchUniformity": [],
+            "agent_helping_rate": [],
+            "human_helping_rate": [],
+        }
+    
+    # If patch_uniformity_map is empty, warn and return empty result
+    if not patch_uniformity_map:
+        logger.warning("Patch uniformity map is empty; skipping metric 2 computation")
         return {
             "patchUniformity": [],
             "agent_helping_rate": [],
