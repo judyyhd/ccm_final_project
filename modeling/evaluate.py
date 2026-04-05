@@ -33,6 +33,35 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def _build_patch_uniformity_map(trialdf_path: str) -> dict:
+    """
+    Build mapping from objectLayer to patchUniformity from trialdf.csv.
+    
+    Args:
+        trialdf_path: Path to trialdf.csv file
+        
+    Returns:
+        Dict mapping objectLayer -> patchUniformity
+    """
+    df = pd.read_csv(trialdf_path)
+    
+    # Drop rows with NaN in objectLayer or patchUniformity
+    df = df.dropna(subset=["objectLayer", "patchUniformity"])
+    
+    # Keep only first row per unique objectLayer (should be consistent within same objectLayer)
+    df = df.drop_duplicates(subset=["objectLayer"], keep="first")
+    
+    # Build mapping
+    patch_map = dict(zip(df["objectLayer"], df["patchUniformity"]))
+    
+    # Add fallback for any unknown layers
+    if not patch_map:
+        logger.warning("No valid patchUniformity mappings found in trialdf.csv")
+        patch_map = {}
+    
+    return patch_map
+
+
 def run_agent_episode(agent, human_game, agent_color="red", reward_mode="selfish"):
     """
     Run a trained agent through a game and collect behavioral metrics.
@@ -80,6 +109,7 @@ def run_agent_episode(agent, human_game, agent_color="red", reward_mode="selfish
             "ownDistanceToClosestOtherVeg": compute_distance_to_closest_other_veg(
                 env.state, agent_color
             ),
+            "objectLayer": env.state.objectLayer,
         }
 
         # Compute partner helped last turn (from history)
@@ -102,7 +132,7 @@ def run_agent_episode(agent, human_game, agent_color="red", reward_mode="selfish
 
 def compute_distance_to_closest_other_veg(state, agent_color):
     """Compute Manhattan distance to closest partner vegetable on farm."""
-    agent = state.playersDict[agent_color]
+    agent = state.redplayer if agent_color == "red" else state.purpleplayer
     partner_color = "purple" if agent_color == "red" else "red"
     partner_veggies = [
         item for item in state.items if item.color == partner_color and item.status == "farm"
@@ -128,6 +158,9 @@ def load_human_metrics(filepath: str, agent_color: str = "red"):
 
     # Filter to specified agent color
     df = df[df["agent_color"] == agent_color].reset_index(drop=True)
+    
+    # Filter to only non-gameover rows
+    df = df[df["gameover"] == False].reset_index(drop=True)
 
     # Extract or compute metrics
     metrics_list = []
@@ -139,6 +172,8 @@ def load_human_metrics(filepath: str, agent_color: str = "red"):
             own_energy = int(row.get("ownEnergy", 50)) if pd.notna(row.get("ownEnergy")) else 50
             own_distance = int(row.get("ownDistanceToClosestOtherVeg", 0)) if pd.notna(row.get("ownDistanceToClosestOtherVeg")) else 0
             partner_helped = int(row.get("partner_helped_lasttrial", 0)) if pd.notna(row.get("partner_helped_lasttrial")) else 0
+            patch_uniformity = row.get("patchUniformity", "unknown") if pd.notna(row.get("patchUniformity")) else "unknown"
+            turn_count = int(row.get("turnCount", 0)) if pd.notna(row.get("turnCount")) else 0
             
             metrics = {
                 "helping_event": helping_event,
@@ -146,6 +181,8 @@ def load_human_metrics(filepath: str, agent_color: str = "red"):
                 "ownEnergy": own_energy,
                 "ownDistanceToClosestOtherVeg": own_distance,
                 "partner_helped_lasttrial": partner_helped,
+                "patchUniformity": patch_uniformity,
+                "turnCount": turn_count,
             }
             metrics_list.append(metrics)
         except Exception as e:
@@ -179,22 +216,50 @@ def compute_metric_1_backpack_size(agent_metrics_list, human_metrics_list):
     return result
 
 
-def compute_metric_2_patch_uniformity(agent_metrics_list, human_metrics_list):
-    """Helpfulness by patch uniformity."""
+def compute_metric_2_patch_uniformity(agent_metrics_list, human_metrics_list, patch_uniformity_map: dict):
+    """Helpfulness by patch uniformity.
+    
+    Args:
+        agent_metrics_list: List of agent metrics dicts with "objectLayer" field
+        human_metrics_list: List of human metrics dicts with "patchUniformity" field
+        patch_uniformity_map: Dict mapping objectLayer -> patchUniformity
+    
+    Returns:
+        Dict with patchUniformity categories and helping rates for agents vs humans
+    """
     if not agent_metrics_list or not human_metrics_list:
         return {
             "patchUniformity": [],
             "agent_helping_rate": [],
             "human_helping_rate": [],
         }
-    # Note: patch uniformity is not directly in metrics; it would come from game conditions.
-    # For now, we'll compute a dummy metric. In practice, you'd get patchUniformity
-    # from the game state or trialdf.csv.
-    return {
-        "patchUniformity": ["uniform", "non-uniform"],
-        "agent_helping_rate": [0.3, 0.35],
-        "human_helping_rate": [0.28, 0.32],
+    
+    # For each agent metric, look up patchUniformity from objectLayer
+    agent_df = pd.DataFrame(agent_metrics_list)
+    agent_df["patchUniformity"] = agent_df["objectLayer"].map(patch_uniformity_map).fillna("unknown")
+    
+    human_df = pd.DataFrame(human_metrics_list)
+    
+    result = {
+        "patchUniformity": [],
+        "agent_helping_rate": [],
+        "human_helping_rate": [],
     }
+    
+    # Compute for each patchUniformity value found in the agent data
+    for patch_type in sorted(agent_df["patchUniformity"].unique()):
+        agent_subset = agent_df[agent_df["patchUniformity"] == patch_type]
+        human_subset = human_df[human_df["patchUniformity"] == patch_type]
+        
+        if len(agent_subset) > 0 and len(human_subset) > 0:
+            agent_rate = agent_subset["helping_event"].mean()
+            human_rate = human_subset["helping_event"].mean()
+            
+            result["patchUniformity"].append(patch_type)
+            result["agent_helping_rate"].append(agent_rate)
+            result["human_helping_rate"].append(human_rate)
+    
+    return result
 
 
 def compute_metric_3_distance_to_partner_veg(agent_metrics_list, human_metrics_list):
@@ -262,9 +327,10 @@ def compute_metric_4_remaining_energy(agent_metrics_list, human_metrics_list):
 
 
 def compute_metric_5_conditional_on_partner_help(agent_metrics_list, human_metrics_list):
-    """Helping rate by partner's action in previous turn (conditional)."""
+    """Helping rate by partner's action in previous turn (conditional), broken down per turn."""
     if not agent_metrics_list or not human_metrics_list:
         return {
+            "turn": [],
             "partner_helped_last": [],
             "agent_helping_rate": [],
             "human_helping_rate": [],
@@ -274,23 +340,33 @@ def compute_metric_5_conditional_on_partner_help(agent_metrics_list, human_metri
     human_df = pd.DataFrame(human_metrics_list)
 
     result = {
+        "turn": [],
         "partner_helped_last": [],
         "agent_helping_rate": [],
         "human_helping_rate": [],
     }
 
-    for partner_helped in [False, True]:
-        agent_subset = agent_df[agent_df["partner_helped_lasttrial"] == (1 if partner_helped else 0)]
-        human_subset = human_df[human_df["partner_helped_lasttrial"] == (1 if partner_helped else 0)]
+    # Compute for each turn (0-9) and partner_helped_last condition
+    for turn in range(10):
+        for partner_helped in [False, True]:
+            agent_subset = agent_df[
+                (agent_df["turn"] == turn) & 
+                (agent_df["partner_helped_lasttrial"] == (1 if partner_helped else 0))
+            ]
+            human_subset = human_df[
+                (human_df["turnCount"] == turn) & 
+                (human_df["partner_helped_lasttrial"] == (1 if partner_helped else 0))
+            ]
 
-        if len(agent_subset) > 0 and len(human_subset) > 0:
-            agent_rate = agent_subset["helping_event"].mean()
-            human_rate = human_subset["helping_event"].mean()
+            if len(agent_subset) > 0 and len(human_subset) > 0:
+                agent_rate = agent_subset["helping_event"].mean()
+                human_rate = human_subset["helping_event"].mean()
 
-            label = "Yes" if partner_helped else "No"
-            result["partner_helped_last"].append(label)
-            result["agent_helping_rate"].append(agent_rate)
-            result["human_helping_rate"].append(human_rate)
+                label = "Yes" if partner_helped else "No"
+                result["turn"].append(turn)
+                result["partner_helped_last"].append(label)
+                result["agent_helping_rate"].append(agent_rate)
+                result["human_helping_rate"].append(human_rate)
 
     return result
 
@@ -339,8 +415,13 @@ def evaluate_agent(reward_mode: str, output_dir: str = "models"):
     logger.info("Loading human metrics from trialdf.csv...")
     human_metrics_all = load_human_metrics("../data/trialdf.csv", agent_color="red")
 
+    # Build patch uniformity mapping
+    logger.info("Building patch uniformity mapping...")
+    patch_uniformity_map = _build_patch_uniformity_map("../data/trialdf.csv")
+
     # Compute all metrics
     metric_1 = compute_metric_1_backpack_size(agent_metrics_all, human_metrics_all)
+    metric_2 = compute_metric_2_patch_uniformity(agent_metrics_all, human_metrics_all, patch_uniformity_map)
     metric_3 = compute_metric_3_distance_to_partner_veg(agent_metrics_all, human_metrics_all)
     metric_4 = compute_metric_4_remaining_energy(agent_metrics_all, human_metrics_all)
     metric_5 = compute_metric_5_conditional_on_partner_help(agent_metrics_all, human_metrics_all)
@@ -353,6 +434,12 @@ def evaluate_agent(reward_mode: str, output_dir: str = "models"):
         df1 = pd.DataFrame(metric_1)
         df1.to_csv(f"results/metrics_{reward_mode}_metric1_backpack.csv", index=False)
         logger.info(f"Saved metric 1 to results/metrics_{reward_mode}_metric1_backpack.csv")
+
+    # Metric 2: Patch Uniformity
+    if metric_2["patchUniformity"]:
+        df2 = pd.DataFrame(metric_2)
+        df2.to_csv(f"results/metrics_{reward_mode}_metric2_patchuniformity.csv", index=False)
+        logger.info(f"Saved metric 2 to results/metrics_{reward_mode}_metric2_patchuniformity.csv")
 
     # Metric 3: Distance
     if metric_3["distance_bin"]:

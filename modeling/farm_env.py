@@ -123,14 +123,14 @@ class FarmEnv(gym.Env):
             action_idx = len(legal_actions) - 1  # Use last legal action as fallback
         agent_action = legal_actions[action_idx]
 
-        # Capture pre-action backpack state for capacity reward
+        # Capture pre-action state for reward computation
         agent_pre = self.state.redplayer if self.agent_color == "red" else self.state.purpleplayer
         pre_action_bp_contents = len(agent_pre["backpack"]["contents"])
         pre_action_bp_capacity = agent_pre["backpack"]["capacity"]
+        pre_action_agent_loc = dict(agent_pre["loc"])  # Copy of location dict
 
         # Take agent's action
         self.state = self.state.take_action(agent_action, inplace=False)
-
         # Check if game is done
         if self.state.is_done():
             reward = self._compute_reward(
@@ -138,6 +138,7 @@ class FarmEnv(gym.Env):
                 is_final=True,
                 pre_bp_contents=pre_action_bp_contents,
                 pre_bp_capacity=pre_action_bp_capacity,
+                pre_agent_loc=pre_action_agent_loc,
             )
             obs = self._get_obs()
             return obs, reward, True, False, {}
@@ -162,6 +163,7 @@ class FarmEnv(gym.Env):
             is_final=self.state.is_done(),
             pre_bp_contents=pre_action_bp_contents,
             pre_bp_capacity=pre_action_bp_capacity,
+            pre_agent_loc=pre_action_agent_loc,
         )
 
         # Get new observation
@@ -239,6 +241,7 @@ class FarmEnv(gym.Env):
         is_final: bool,
         pre_bp_contents: int = None,
         pre_bp_capacity: int = None,
+        pre_agent_loc: dict = None,
     ) -> float:
         """
         Compute the shaped reward based on reward_mode.
@@ -248,6 +251,7 @@ class FarmEnv(gym.Env):
             is_final: Whether the game just ended.
             pre_bp_contents: Backpack contents count before action (for capacity mode).
             pre_bp_capacity: Backpack capacity before action (for capacity mode).
+            pre_agent_loc: Agent location before action (for proximity mode).
 
         Returns:
             Reward scalar.
@@ -257,7 +261,7 @@ class FarmEnv(gym.Env):
         elif self.reward_mode == "capacity":
             return self._compute_capacity_reward(action, is_final, pre_bp_contents, pre_bp_capacity)
         elif self.reward_mode == "proximity":
-            return self._compute_proximity_reward(action, is_final)
+            return self._compute_proximity_reward(action, is_final, pre_agent_loc)
         elif self.reward_mode == "reciprocity":
             return self._compute_reciprocity_reward(action, is_final)
         else:
@@ -286,14 +290,16 @@ class FarmEnv(gym.Env):
             return spare / pre_bp_capacity
         return 0.0
 
-    def _compute_proximity_reward(self, action: farmgame.Action, is_final: bool) -> float:
+    def _compute_proximity_reward(self, action: farmgame.Action, is_final: bool, pre_agent_loc: dict = None) -> float:
         """Reward = proximity bonus when picking partner veggies."""
         if is_final:
             return self.state.reward(self.agent_color)
 
         # Check if action is a helping action
         if action.type == farmgame.ActionType.veggie and action.color != self.agent_color:
-            agent = self.state.redplayer if self.agent_color == "red" else self.state.purpleplayer
+            # Use pre-action location for distance calculation
+            agent_loc = pre_agent_loc if pre_agent_loc is not None else self.state.redplayer["loc"] if self.agent_color == "red" else self.state.purpleplayer["loc"]
+            
             # Find nearest partner vegetable on farm
             partner_color = "purple" if self.agent_color == "red" else "red"
             partner_veggies = [
@@ -303,7 +309,7 @@ class FarmEnv(gym.Env):
             ]
             if partner_veggies:
                 min_dist = min(
-                    utils.getManhattanDistance(agent["loc"], veg.loc)
+                    utils.getManhattanDistance(agent_loc, veg.loc)
                     for veg in partner_veggies
                 )
                 return 1.0 / (1.0 + min_dist)
