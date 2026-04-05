@@ -6,17 +6,7 @@ Loaded model from models/ppo_selfish.zip
 Loading human sessions for evaluation...
 Evaluated agent on 3768 games.
 Loading human metrics from trialdf.csv...
-Saved metric 1 to results/metrics_selfish_metric1_backpack.csv
-Saved metric 3 to results/metrics_selfish_metric3_distance.csv
-Saved metric 4 to results/metrics_selfish_metric4_energy.csv
-Saved metric 5 to results/metrics_selfish_metric5_reciprocity.csv
-
-------------------------------------------------------------
-Summary for reward_mode='selfish':
-------------------------------------------------------------
-Agent overall helping rate: 0.028
-Human overall helping rate: 0.076
-Difference: -0.048
+Error evaluating agent with reward_mode='selfish': [Errno 2] No such file or directory: '../data/trialdf.csv'
 
 ============================================================
 Evaluating PPO agent with reward_mode='capacity'
@@ -25,17 +15,7 @@ Loaded model from models/ppo_capacity.zip
 Loading human sessions for evaluation...
 Evaluated agent on 3768 games.
 Loading human metrics from trialdf.csv...
-Saved metric 1 to results/metrics_capacity_metric1_backpack.csv
-Saved metric 3 to results/metrics_capacity_metric3_distance.csv
-Saved metric 4 to results/metrics_capacity_metric4_energy.csv
-Saved metric 5 to results/metrics_capacity_metric5_reciprocity.csv
-
-------------------------------------------------------------
-Summary for reward_mode='capacity':
-------------------------------------------------------------
-Agent overall helping rate: 0.034
-Human overall helping rate: 0.076
-Difference: -0.042
+Error evaluating agent with reward_mode='capacity': [Errno 2] No such file or directory: '../data/trialdf.csv'
 
 ============================================================
 Evaluating PPO agent with reward_mode='proximity'
@@ -44,17 +24,7 @@ Loaded model from models/ppo_proximity.zip
 Loading human sessions for evaluation...
 Evaluated agent on 3768 games.
 Loading human metrics from trialdf.csv...
-Saved metric 1 to results/metrics_proximity_metric1_backpack.csv
-Saved metric 3 to results/metrics_proximity_metric3_distance.csv
-Saved metric 4 to results/metrics_proximity_metric4_energy.csv
-Saved metric 5 to results/metrics_proximity_metric5_reciprocity.csv
-
-------------------------------------------------------------
-Summary for reward_mode='proximity':
-------------------------------------------------------------
-Agent overall helping rate: 0.051
-Human overall helping rate: 0.076
-Difference: -0.026
+Error evaluating agent with reward_mode='proximity': [Errno 2] No such file or directory: '../data/trialdf.csv'
 
 ============================================================
 Evaluating PPO agent with reward_mode='reciprocity'
@@ -63,17 +33,7 @@ Loaded model from models/ppo_reciprocity.zip
 Loading human sessions for evaluation...
 Evaluated agent on 3768 games.
 Loading human metrics from trialdf.csv...
-Saved metric 1 to results/metrics_reciprocity_metric1_backpack.csv
-Saved metric 3 to results/metrics_reciprocity_metric3_distance.csv
-Saved metric 4 to results/metrics_reciprocity_metric4_energy.csv
-Saved metric 5 to results/metrics_reciprocity_metric5_reciprocity.csv
-
-------------------------------------------------------------
-Summary for reward_mode='reciprocity':
-------------------------------------------------------------
-Agent overall helping rate: 0.055
-Human overall helping rate: 0.076
-Difference: -0.022
+Error evaluating agent with reward_mode='reciprocity': [Errno 2] No such file or directory: '../data/trialdf.csv'
 
 ============================================================
 Evaluation complete!
