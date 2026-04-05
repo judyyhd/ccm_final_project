@@ -217,48 +217,38 @@ def compute_metric_1_backpack_size(agent_metrics_list, human_metrics_list):
 
 
 def compute_metric_2_patch_uniformity(agent_metrics_list, human_metrics_list, patch_uniformity_map: dict):
-    """Helpfulness by patch uniformity.
-    
-    Args:
-        agent_metrics_list: List of agent metrics dicts with "objectLayer" field
-        human_metrics_list: List of human metrics dicts with "patchUniformity" field
-        patch_uniformity_map: Dict mapping objectLayer -> patchUniformity
-    
-    Returns:
-        Dict with patchUniformity categories and helping rates for agents vs humans
-    """
+    """Helpfulness by patch uniformity (True=Uniform, False=Non-uniform)."""
     if not agent_metrics_list or not human_metrics_list:
         return {
             "patchUniformity": [],
             "agent_helping_rate": [],
             "human_helping_rate": [],
         }
-    
-    # For each agent metric, look up patchUniformity from objectLayer
+
     agent_df = pd.DataFrame(agent_metrics_list)
-    agent_df["patchUniformity"] = agent_df["objectLayer"].map(patch_uniformity_map).fillna("unknown")
-    
+    agent_df["patchUniformity"] = (
+        agent_df["objectLayer"].map(patch_uniformity_map).astype(str)
+    )
+
     human_df = pd.DataFrame(human_metrics_list)
-    
+    human_df["patchUniformity"] = human_df["patchUniformity"].astype(str)
+
     result = {
         "patchUniformity": [],
         "agent_helping_rate": [],
         "human_helping_rate": [],
     }
-    
-    # Compute for each patchUniformity value found in the agent data
-    for patch_type in sorted(agent_df["patchUniformity"].unique()):
-        agent_subset = agent_df[agent_df["patchUniformity"] == patch_type]
-        human_subset = human_df[human_df["patchUniformity"] == patch_type]
-        
+
+    # "True" = uniform patches, "False" = non-uniform patches
+    for val, label in [("True", "Uniform"), ("False", "Non-uniform")]:
+        agent_subset = agent_df[agent_df["patchUniformity"] == val]
+        human_subset = human_df[human_df["patchUniformity"] == val]
+
         if len(agent_subset) > 0 and len(human_subset) > 0:
-            agent_rate = agent_subset["helping_event"].mean()
-            human_rate = human_subset["helping_event"].mean()
-            
-            result["patchUniformity"].append(patch_type)
-            result["agent_helping_rate"].append(agent_rate)
-            result["human_helping_rate"].append(human_rate)
-    
+            result["patchUniformity"].append(label)
+            result["agent_helping_rate"].append(agent_subset["helping_event"].mean())
+            result["human_helping_rate"].append(human_subset["helping_event"].mean())
+
     return result
 
 
