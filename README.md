@@ -157,4 +157,4 @@ Popp, O., & Gureckis, M. (2024). Spontaneous cooperation in turn-based games. *C
 
 ## Contact
 
-[Your Name] - DS-GA 1016 Final Project, Spring 2026
+Huizhen Jin, Shengduo Li, Judy Yang - DS-GA 1016 Final Project, Spring 2026

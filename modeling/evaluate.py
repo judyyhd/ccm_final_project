@@ -51,18 +51,6 @@ def run_agent_episode(agent, human_game, agent_color="red", reward_mode="selfish
     turn_number = 0
 
     while True:
-        # Skip if it's not the agent's turn yet (game might start with other player)
-        if env.state.whose_turn()["color"] != agent_color and not env.state.is_done():
-            # Auto-step through partner's turn
-            partner_color = "purple" if agent_color == "red" else "red"
-            while env.state.whose_turn()["color"] == partner_color and not env.state.is_done():
-                partner_action = env._get_partner_action()
-                env.state = env.state.take_action(partner_action, inplace=False)
-            
-            if env.state.is_done():
-                break
-            continue
-        
         # Get agent's action
         action_idx, _ = agent.predict(obs, deterministic=True)
 
@@ -79,7 +67,7 @@ def run_agent_episode(agent, human_game, agent_color="red", reward_mode="selfish
         )
 
         # Get agent state before action
-        agent_state = env.state.playersDict[agent_color]
+        agent_state = env.state.redplayer if agent_color == "red" else env.state.purpleplayer
         partner_color = "purple" if agent_color == "red" else "red"
 
         # Compute metrics for this turn

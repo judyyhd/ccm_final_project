@@ -34,9 +34,9 @@ class FarmEnv(gym.Env):
         self.reward_mode = reward_mode
         self.history_window = history_window
 
-        # Grid dimensions
-        self.grid_width = 20
-        self.grid_height = 20
+        # Grid dimensions (safe upper bound from observed data)
+        self.grid_width = 26
+        self.grid_height = 26
 
         # Maximum number of items on farm (upper bound)
         self.max_items = 14
@@ -88,6 +88,15 @@ class FarmEnv(gym.Env):
             # Fallback: create a default game
             self.state = farmgame.configure_game()
 
+        # If the game starts on the partner's turn, auto-step through it
+        partner_color = "purple" if self.agent_color == "red" else "red"
+        while not self.state.is_done() and self.state.whose_turn()["color"] == partner_color:
+            partner_action = self._get_partner_action()
+            partner_helped = farmgame.Transition(self.state, partner_action).is_helping(partner_color)
+            self.partner_helped_history.insert(0, partner_helped)
+            self.partner_helped_history = self.partner_helped_history[:self.history_window]
+            self.state = self.state.take_action(partner_action, inplace=False)
+
         obs = self._get_obs()
         info = {}
         return obs, info
@@ -114,12 +123,22 @@ class FarmEnv(gym.Env):
             action_idx = len(legal_actions) - 1  # Use last legal action as fallback
         agent_action = legal_actions[action_idx]
 
+        # Capture pre-action backpack state for capacity reward
+        agent_pre = self.state.redplayer if self.agent_color == "red" else self.state.purpleplayer
+        pre_action_bp_contents = len(agent_pre["backpack"]["contents"])
+        pre_action_bp_capacity = agent_pre["backpack"]["capacity"]
+
         # Take agent's action
         self.state = self.state.take_action(agent_action, inplace=False)
 
         # Check if game is done
         if self.state.is_done():
-            reward = self._compute_reward(agent_action, is_final=True)
+            reward = self._compute_reward(
+                agent_action,
+                is_final=True,
+                pre_bp_contents=pre_action_bp_contents,
+                pre_bp_capacity=pre_action_bp_capacity,
+            )
             obs = self._get_obs()
             return obs, reward, True, False, {}
 
@@ -138,7 +157,12 @@ class FarmEnv(gym.Env):
             self.state = self.state.take_action(partner_action, inplace=False)
 
         # Compute reward for agent's action
-        reward = self._compute_reward(agent_action, is_final=self.state.is_done())
+        reward = self._compute_reward(
+            agent_action,
+            is_final=self.state.is_done(),
+            pre_bp_contents=pre_action_bp_contents,
+            pre_bp_capacity=pre_action_bp_capacity,
+        )
 
         # Get new observation
         obs = self._get_obs()
@@ -167,10 +191,8 @@ class FarmEnv(gym.Env):
         """Build observation vector from current state."""
         obs = []
 
-        agent = self.state.playersDict[self.agent_color]
-        partner = self.state.playersDict[
-            "purple" if self.agent_color == "red" else "red"
-        ]
+        agent = self.state.redplayer if self.agent_color == "red" else self.state.purpleplayer
+        partner = self.state.purpleplayer if self.agent_color == "red" else self.state.redplayer
 
         # Agent position (normalized)
         obs.append(agent["loc"]["x"] / self.grid_width)
@@ -211,105 +233,91 @@ class FarmEnv(gym.Env):
 
         return np.array(obs, dtype=np.float32)
 
-    def _compute_reward(self, action: farmgame.Action, is_final: bool) -> float:
+    def _compute_reward(
+        self,
+        action: farmgame.Action,
+        is_final: bool,
+        pre_bp_contents: int = None,
+        pre_bp_capacity: int = None,
+    ) -> float:
         """
         Compute the shaped reward based on reward_mode.
 
         Args:
             action: The action just taken by the agent.
             is_final: Whether the game just ended.
+            pre_bp_contents: Backpack contents count before action (for capacity mode).
+            pre_bp_capacity: Backpack capacity before action (for capacity mode).
 
         Returns:
             Reward scalar.
         """
-        reward = 0.0
-
         if self.reward_mode == "selfish":
-            if is_final:
-                agent = self.state.playersDict[self.agent_color]
-                reward = agent["bonuspoints"]
-
+            return self._compute_selfish_reward(is_final)
         elif self.reward_mode == "capacity":
-            reward = self._compute_capacity_reward(action, is_final)
-
+            return self._compute_capacity_reward(action, is_final, pre_bp_contents, pre_bp_capacity)
         elif self.reward_mode == "proximity":
-            reward = self._compute_proximity_reward(action, is_final)
-
+            return self._compute_proximity_reward(action, is_final)
         elif self.reward_mode == "reciprocity":
-            reward = self._compute_reciprocity_reward(action, is_final)
-
-        return reward
-
-    def _compute_capacity_reward(self, action: farmgame.Action, is_final: bool) -> float:
-        """Reward = selfish + capacity bonus when picking partner veggies with spare capacity."""
-        reward = 0.0
-
-        if is_final:
-            agent = self.state.playersDict[self.agent_color]
-            reward = agent["bonuspoints"]
+            return self._compute_reciprocity_reward(action, is_final)
         else:
-            # Check if action is a helping action (picking partner's veggie)
-            if (
-                action.type == farmgame.ActionType.veggie
-                and action.color != self.agent_color
-            ):
-                # Check capacity at the time of action (before adding to backpack)
-                # We need to look at the state before this action was taken
-                agent = self.state.playersDict[self.agent_color]
-                capacity = agent["backpack"]["capacity"]
-                # Since action already added the item, backpack has len+1
-                num_items_before = len(agent["backpack"]["contents"]) - 1
-                spare_capacity = capacity - num_items_before
-                reward = spare_capacity / capacity
+            raise ValueError(f"Unknown reward_mode: {self.reward_mode}")
 
-        return reward
+    def _compute_selfish_reward(self, is_final: bool) -> float:
+        """Selfish mode: 0 at each step, final score at end."""
+        if is_final:
+            return self.state.reward(self.agent_color)
+        return 0.0
+
+    def _compute_capacity_reward(
+        self,
+        action: farmgame.Action,
+        is_final: bool,
+        pre_bp_contents: int,
+        pre_bp_capacity: int,
+    ) -> float:
+        """Reward = capacity bonus when picking partner veggies with spare capacity."""
+        if is_final:
+            return self.state.reward(self.agent_color)
+
+        # Check if action is a helping action (picking partner's veggie)
+        if action.type == farmgame.ActionType.veggie and action.color != self.agent_color:
+            spare = pre_bp_capacity - pre_bp_contents
+            return spare / pre_bp_capacity
+        return 0.0
 
     def _compute_proximity_reward(self, action: farmgame.Action, is_final: bool) -> float:
-        """Reward = selfish + proximity bonus when picking partner veggies."""
-        reward = 0.0
-
+        """Reward = proximity bonus when picking partner veggies."""
         if is_final:
-            agent = self.state.playersDict[self.agent_color]
-            reward = agent["bonuspoints"]
-        else:
-            # Check if action is a helping action
-            if (
-                action.type == farmgame.ActionType.veggie
-                and action.color != self.agent_color
-            ):
-                agent = self.state.playersDict[self.agent_color]
-                # Find nearest partner vegetable on farm
-                partner_color = "purple" if self.agent_color == "red" else "red"
-                partner_veggies = [
-                    item
-                    for item in self.state.items
-                    if item.color == partner_color and item.status == "farm"
-                ]
-                if partner_veggies:
-                    min_dist = min(
-                        utils.getManhattanDistance(agent["loc"], veg.loc)
-                        for veg in partner_veggies
-                    )
-                    reward = 1.0 / (1.0 + min_dist)
+            return self.state.reward(self.agent_color)
 
-        return reward
+        # Check if action is a helping action
+        if action.type == farmgame.ActionType.veggie and action.color != self.agent_color:
+            agent = self.state.redplayer if self.agent_color == "red" else self.state.purpleplayer
+            # Find nearest partner vegetable on farm
+            partner_color = "purple" if self.agent_color == "red" else "red"
+            partner_veggies = [
+                item
+                for item in self.state.items
+                if item.color == partner_color and item.status == "farm"
+            ]
+            if partner_veggies:
+                min_dist = min(
+                    utils.getManhattanDistance(agent["loc"], veg.loc)
+                    for veg in partner_veggies
+                )
+                return 1.0 / (1.0 + min_dist)
+        return 0.0
 
     def _compute_reciprocity_reward(self, action: farmgame.Action, is_final: bool) -> float:
-        """Reward = selfish + reciprocity bonus when picking partner veggies."""
-        reward = 0.0
-
+        """Reward = reciprocity bonus when picking partner veggies."""
         if is_final:
-            agent = self.state.playersDict[self.agent_color]
-            reward = agent["bonuspoints"]
-        else:
-            # Check if action is a helping action
-            if (
-                action.type == farmgame.ActionType.veggie
-                and action.color != self.agent_color
-            ):
-                # Fraction of recent turns where partner helped
-                if self.history_window > 0:
-                    num_helped = sum(self.partner_helped_history)
-                    reward = num_helped / self.history_window
+            return self.state.reward(self.agent_color)
 
-        return reward
+        # Check if action is a helping action
+        if action.type == farmgame.ActionType.veggie and action.color != self.agent_color:
+            # Fraction of recent turns where partner helped
+            if self.history_window > 0:
+                num_helped = sum(self.partner_helped_history)
+                return num_helped / self.history_window
+        return 0.0

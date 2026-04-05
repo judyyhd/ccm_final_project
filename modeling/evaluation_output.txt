@@ -14,9 +14,9 @@ Saved metric 5 to results/metrics_selfish_metric5_reciprocity.csv
 ------------------------------------------------------------
 Summary for reward_mode='selfish':
 ------------------------------------------------------------
-Agent overall helping rate: 0.036
+Agent overall helping rate: 0.028
 Human overall helping rate: 0.076
-Difference: -0.041
+Difference: -0.048
 
 ============================================================
 Evaluating PPO agent with reward_mode='capacity'
@@ -33,9 +33,9 @@ Saved metric 5 to results/metrics_capacity_metric5_reciprocity.csv
 ------------------------------------------------------------
 Summary for reward_mode='capacity':
 ------------------------------------------------------------
-Agent overall helping rate: 0.066
+Agent overall helping rate: 0.034
 Human overall helping rate: 0.076
-Difference: -0.011
+Difference: -0.042
 
 ============================================================
 Evaluating PPO agent with reward_mode='proximity'
@@ -52,9 +52,9 @@ Saved metric 5 to results/metrics_proximity_metric5_reciprocity.csv
 ------------------------------------------------------------
 Summary for reward_mode='proximity':
 ------------------------------------------------------------
-Agent overall helping rate: 0.034
+Agent overall helping rate: 0.051
 Human overall helping rate: 0.076
-Difference: -0.042
+Difference: -0.026
 
 ============================================================
 Evaluating PPO agent with reward_mode='reciprocity'
@@ -71,9 +71,9 @@ Saved metric 5 to results/metrics_reciprocity_metric5_reciprocity.csv
 ------------------------------------------------------------
 Summary for reward_mode='reciprocity':
 ------------------------------------------------------------
-Agent overall helping rate: 0.046
+Agent overall helping rate: 0.055
 Human overall helping rate: 0.076
-Difference: -0.031
+Difference: -0.022
 
 ============================================================
 Evaluation complete!
