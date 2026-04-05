@@ -7,6 +7,10 @@ __pycache__/
 .Python
 .venv/
 
+# conda environments
+envs/
+.conda/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
