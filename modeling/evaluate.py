@@ -43,6 +43,10 @@ def _build_patch_uniformity_map(trialdf_path: str) -> dict:
     Returns:
         Dict mapping objectLayer -> patchUniformity
     """
+    # If path is relative, resolve it relative to this file's location
+    if not os.path.isabs(trialdf_path):
+        trialdf_path = os.path.join(os.path.dirname(__file__), trialdf_path)
+    
     df = pd.read_csv(trialdf_path)
     
     # Drop rows with NaN in objectLayer or patchUniformity
@@ -151,6 +155,10 @@ def load_human_metrics(filepath: str, agent_color: str = "red"):
     Load human behavioral metrics from trialdf.csv.
     Filter to only rows where agent (player) is agent_color.
     """
+    # If filepath is relative, resolve it relative to this file's location
+    if not os.path.isabs(filepath):
+        filepath = os.path.join(os.path.dirname(__file__), filepath)
+    
     df = pd.read_csv(filepath)
 
     # Map subjid to agent color (red or purple) based on suffix
