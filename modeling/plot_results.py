@@ -16,8 +16,16 @@ AGENT_COLOR = 'steelblue'
 HUMAN_COLOR = 'lightcoral'
 LINE_COLORS = {'Yes': 'orange', 'No': 'teal'}
 
-REWARD_MODES = ['selfish', 'capacity', 'proximity', 'reciprocity']
+REWARD_MODES = ['selfish', 'capacity', 'proximity', 'reciprocity', 'capacity_proximity']
 FIGURE_DIR = 'figures'
+
+
+def get_reward_mode_title(reward_mode: str) -> str:
+    """Format reward mode name for plot titles."""
+    if reward_mode == 'capacity_proximity':
+        return 'Cap+Prox'
+    else:
+        return reward_mode.capitalize()
 
 
 def ensure_figures_dir():
@@ -48,13 +56,13 @@ def load_metric_csv(metric_num, reward_mode):
 
 def plot_metric_1():
     """Plot Metric 1: Helping rate by backpack size."""
-    fig, axes = plt.subplots(1, 5, figsize=(20, 5))
+    fig, axes = plt.subplots(1, 6, figsize=(24, 5))
     fig.suptitle('Helping rate by backpack size: Agent vs. Human', fontsize=14, fontweight='bold')
     
     # Collect all data to determine y-axis limits
     all_rates = []
     data_map = {}
-    for i, reward_mode in enumerate(REWARD_MODES):
+    for reward_mode in REWARD_MODES:
         df = load_metric_csv(1, reward_mode)
         if df is not None:
             data_map[reward_mode] = df
@@ -77,7 +85,7 @@ def plot_metric_1():
             
             ax.set_xlabel('Backpack Size')
             ax.set_ylabel('Helping Rate')
-            ax.set_title(reward_mode.capitalize())
+            ax.set_title(get_reward_mode_title(reward_mode))
             ax.set_xticks(x)
             ax.set_xticklabels(df['backpack_size'].astype(int))
             ax.set_ylim(0, ylim_max)
@@ -86,10 +94,10 @@ def plot_metric_1():
                 ax.legend()
         else:
             ax.text(0.5, 0.5, 'No data', ha='center', va='center', transform=ax.transAxes)
-            ax.set_title(reward_mode.capitalize())
+            ax.set_title(get_reward_mode_title(reward_mode))
     
     # Human reference panel
-    ax_human = axes[4]
+    ax_human = axes[5]
     human_data = None
     for reward_mode in REWARD_MODES:
         df = data_map.get(reward_mode)
@@ -117,13 +125,13 @@ def plot_metric_1():
 
 def plot_metric_2():
     """Plot Metric 2: Helping rate by patch uniformity."""
-    fig, axes = plt.subplots(1, 5, figsize=(20, 5))
+    fig, axes = plt.subplots(1, 6, figsize=(24, 5))
     fig.suptitle('Helping rate by patch uniformity: Agent vs. Human', fontsize=14, fontweight='bold')
     
     # Collect all data
     all_rates = []
     data_map = {}
-    for i, reward_mode in enumerate(REWARD_MODES):
+    for reward_mode in REWARD_MODES:
         df = load_metric_csv(2, reward_mode)
         if df is not None:
             data_map[reward_mode] = df
@@ -146,7 +154,7 @@ def plot_metric_2():
             
             ax.set_xlabel('Patch Uniformity')
             ax.set_ylabel('Helping Rate')
-            ax.set_title(reward_mode.capitalize())
+            ax.set_title(get_reward_mode_title(reward_mode))
             ax.set_xticks(x)
             ax.set_xticklabels(df['patchUniformity'], rotation=30, ha='right')
             ax.set_ylim(0, ylim_max)
@@ -155,10 +163,10 @@ def plot_metric_2():
                 ax.legend()
         else:
             ax.text(0.5, 0.5, 'No data', ha='center', va='center', transform=ax.transAxes)
-            ax.set_title(reward_mode.capitalize())
+            ax.set_title(get_reward_mode_title(reward_mode))
     
     # Human reference panel
-    ax_human = axes[4]
+    ax_human = axes[5]
     human_data = None
     for reward_mode in REWARD_MODES:
         df = data_map.get(reward_mode)
@@ -186,13 +194,13 @@ def plot_metric_2():
 
 def plot_metric_3():
     """Plot Metric 3: Helping rate by distance to partner vegetables."""
-    fig, axes = plt.subplots(1, 5, figsize=(20, 5))
+    fig, axes = plt.subplots(1, 6, figsize=(24, 5))
     fig.suptitle('Helping rate by distance to partner vegetables: Agent vs. Human', fontsize=14, fontweight='bold')
     
     # Collect all data
     all_rates = []
     data_map = {}
-    for i, reward_mode in enumerate(REWARD_MODES):
+    for reward_mode in REWARD_MODES:
         df = load_metric_csv(3, reward_mode)
         if df is not None:
             data_map[reward_mode] = df
@@ -215,7 +223,7 @@ def plot_metric_3():
             
             ax.set_xlabel('Distance Bin')
             ax.set_ylabel('Helping Rate')
-            ax.set_title(reward_mode.capitalize())
+            ax.set_title(get_reward_mode_title(reward_mode))
             ax.set_xticks(x)
             ax.set_xticklabels(df['distance_bin'], rotation=30, ha='right')
             ax.set_ylim(0, ylim_max)
@@ -224,10 +232,10 @@ def plot_metric_3():
                 ax.legend()
         else:
             ax.text(0.5, 0.5, 'No data', ha='center', va='center', transform=ax.transAxes)
-            ax.set_title(reward_mode.capitalize())
+            ax.set_title(get_reward_mode_title(reward_mode))
     
     # Human reference panel
-    ax_human = axes[4]
+    ax_human = axes[5]
     human_data = None
     for reward_mode in REWARD_MODES:
         df = data_map.get(reward_mode)
@@ -255,13 +263,13 @@ def plot_metric_3():
 
 def plot_metric_4():
     """Plot Metric 4: Helping rate by remaining energy."""
-    fig, axes = plt.subplots(1, 5, figsize=(20, 5))
+    fig, axes = plt.subplots(1, 6, figsize=(24, 5))
     fig.suptitle('Helping rate by remaining energy: Agent vs. Human', fontsize=14, fontweight='bold')
     
     # Collect all data
     all_rates = []
     data_map = {}
-    for i, reward_mode in enumerate(REWARD_MODES):
+    for reward_mode in REWARD_MODES:
         df = load_metric_csv(4, reward_mode)
         if df is not None:
             data_map[reward_mode] = df
@@ -284,7 +292,7 @@ def plot_metric_4():
             
             ax.set_xlabel('Energy Bin')
             ax.set_ylabel('Helping Rate')
-            ax.set_title(reward_mode.capitalize())
+            ax.set_title(get_reward_mode_title(reward_mode))
             ax.set_xticks(x)
             ax.set_xticklabels(df['energy_bin'], rotation=45, ha='right')
             ax.set_ylim(0, ylim_max)
@@ -293,10 +301,10 @@ def plot_metric_4():
                 ax.legend()
         else:
             ax.text(0.5, 0.5, 'No data', ha='center', va='center', transform=ax.transAxes)
-            ax.set_title(reward_mode.capitalize())
+            ax.set_title(get_reward_mode_title(reward_mode))
     
     # Human reference panel
-    ax_human = axes[4]
+    ax_human = axes[5]
     human_data = None
     for reward_mode in REWARD_MODES:
         df = data_map.get(reward_mode)
@@ -324,13 +332,13 @@ def plot_metric_4():
 
 def plot_metric_5():
     """Plot Metric 5: Helping rate by turn, conditional on partner help (line plot)."""
-    fig, axes = plt.subplots(1, 5, figsize=(20, 5))
+    fig, axes = plt.subplots(1, 6, figsize=(24, 5))
     fig.suptitle('Helping rate by turn (conditional on partner help): Agent vs. Human', fontsize=14, fontweight='bold')
     
     # Collect all data
     all_rates = []
     data_map = {}
-    for i, reward_mode in enumerate(REWARD_MODES):
+    for reward_mode in REWARD_MODES:
         df = load_metric_csv(5, reward_mode)
         if df is not None:
             data_map[reward_mode] = df
@@ -367,7 +375,7 @@ def plot_metric_5():
             
             ax.set_xlabel('Turn')
             ax.set_ylabel('Helping Rate')
-            ax.set_title(reward_mode.capitalize())
+            ax.set_title(get_reward_mode_title(reward_mode))
             ax.set_xticks(range(0, 10))
             ax.set_ylim(0, ylim_max)
             
@@ -375,10 +383,10 @@ def plot_metric_5():
                 ax.legend(fontsize=8)
         else:
             ax.text(0.5, 0.5, 'No data', ha='center', va='center', transform=ax.transAxes)
-            ax.set_title(reward_mode.capitalize())
+            ax.set_title(get_reward_mode_title(reward_mode))
     
     # Human reference panel (dashed lines only)
-    ax_human = axes[4]
+    ax_human = axes[5]
     human_data = None
     for reward_mode in REWARD_MODES:
         df = data_map.get(reward_mode)

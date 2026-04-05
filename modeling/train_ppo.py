@@ -16,9 +16,6 @@ from farm_env import FarmEnv
 
 # Configure logging
 log_file = os.path.join(os.path.dirname(__file__), "training_output.txt")
-# Clear the log file on startup
-with open(log_file, "w") as f:
-    f.write("")
     
 logging.basicConfig(
     level=logging.INFO,
@@ -120,7 +117,15 @@ def train_ppo_agent(reward_mode: str, output_dir: str = "models"):
 
 def main():
     """Train agents for all reward modes."""
-    reward_modes = ["selfish", "capacity", "proximity", "reciprocity"]
+    # Clear the log file at the start of this run
+    with open(log_file, "w") as f:
+        f.write("")
+    
+    logger.info("="*60)
+    logger.info("TRAINING RUN STARTED")
+    logger.info("="*60)
+    
+    reward_modes = ["selfish", "capacity", "proximity", "reciprocity", "capacity_proximity"]
 
     for reward_mode in reward_modes:
         try:

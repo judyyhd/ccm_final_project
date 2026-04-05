@@ -264,6 +264,10 @@ class FarmEnv(gym.Env):
             return self._compute_proximity_reward(action, is_final, pre_agent_loc)
         elif self.reward_mode == "reciprocity":
             return self._compute_reciprocity_reward(action, is_final)
+        elif self.reward_mode == "capacity_proximity":
+            return self._compute_capacity_proximity_reward(
+                action, is_final, pre_bp_contents, pre_bp_capacity, pre_agent_loc
+            )
         else:
             raise ValueError(f"Unknown reward_mode: {self.reward_mode}")
 
@@ -326,4 +330,42 @@ class FarmEnv(gym.Env):
             if self.history_window > 0:
                 num_helped = sum(self.partner_helped_history)
                 return num_helped / self.history_window
+        return 0.0
+
+    def _compute_capacity_proximity_reward(
+        self,
+        action: farmgame.Action,
+        is_final: bool,
+        pre_bp_contents: int,
+        pre_bp_capacity: int,
+        pre_agent_loc: dict = None,
+        **kwargs,
+    ) -> float:
+        """Reward = equal-weighted sum of capacity and proximity bonuses."""
+        if is_final:
+            return self.state.reward(self.agent_color)
+
+        if action.type == farmgame.ActionType.veggie and action.color != self.agent_color:
+            # Capacity component
+            spare = pre_bp_capacity - pre_bp_contents
+            capacity_bonus = spare / pre_bp_capacity
+
+            # Proximity component
+            partner_color = "purple" if self.agent_color == "red" else "red"
+            partner_veggies = [
+                item for item in self.state.items
+                if item.color == partner_color and item.status == "farm"
+            ]
+            loc = pre_agent_loc if pre_agent_loc is not None else (
+                self.state.redplayer if self.agent_color == "red" else self.state.purpleplayer
+            )["loc"]
+            proximity_bonus = 0.0
+            if partner_veggies:
+                min_dist = min(
+                    utils.getManhattanDistance(loc, veg.loc)
+                    for veg in partner_veggies
+                )
+                proximity_bonus = 1.0 / (1.0 + min_dist)
+
+            return 0.5 * capacity_bonus + 0.5 * proximity_bonus
         return 0.0

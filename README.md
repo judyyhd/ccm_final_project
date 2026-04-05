@@ -24,15 +24,21 @@ In this turn-based grid game:
 │   ├── farm_env.py               # Gymnasium environment wrapper (NEW)
 │   ├── train_ppo.py              # PPO training script (NEW)
 │   ├── evaluate.py               # Behavioral evaluation script (NEW)
+│   ├── plot_results.py           # Visualization script (NEW)
+│   ├── analyze_selfish.py        # Selfish agent analysis (NEW)
 │   ├── models/                   # Trained PPO agents (generated)
 │   ├── results/                  # Evaluation metrics (generated)
 │   └── [other model files]
+├── figures/                       # Generated publication-quality plots
+│   ├── fig_metric*.png           # Comparison figures for all 5 metrics
+│   ├── selfish_helping_by_state.png
+│   └── selfish_reciprocity_comparison.png
 ├── analysis/                      # Data cleaning and analysis notebooks
 │   └── clean_raw_data.ipynb
 ├── cogsci24-data-analysis.ipynb  # Analysis notebooks
 ├── model-fitting.ipynb
 ├── requirements.txt               # Legacy Python dependencies
-├── environment.yml                # Conda environment (NEW)
+├── environment.yml                # Conda environment (updated)
 └── README.md
 ```
 
@@ -48,7 +54,7 @@ cd modeling
 
 ### 2. Train PPO Agents
 
-Train separate agents for four reward modes (selfish, capacity, proximity, reciprocity):
+Train separate agents for five reward modes (selfish, capacity, proximity, reciprocity, capacity_proximity):
 
 ```bash
 python train_ppo.py
@@ -56,10 +62,10 @@ python train_ppo.py
 
 This will:
 - Load human sessions from `data/trialdf.csv`
-- Train 4 agents with different reward shaping functions
+- Train 5 agents with different reward shaping functions
 - Save models to `models/ppo_{reward_mode}.zip` 
 - Log output to `training_output.txt`
-- Takes ~2-4 hours depending on hardware
+- Takes ~3-6 hours depending on hardware
 
 ### 3. Evaluate Agent Behavior
 
@@ -76,9 +82,41 @@ This will:
 - Print summary helping rates for each reward mode
 - Log output to `evaluation_output.txt`
 
+### 4. Generate Comparison Figures
+
+Create publication-quality figures comparing all agents:
+
+```bash
+python plot_results.py
+```
+
+This will generate 5 figures in `figures/`, each with 6 subplots (5 agent modes + human reference):
+- `fig_metric1_backpack.png` - Helping rate by backpack fill
+- `fig_metric2_patchuniformity.png` - Helping rate by patch uniformity
+- `fig_metric3_distance.png` - Helping rate by distance to partner vegetables
+- `fig_metric4_energy.png` - Helping rate by remaining energy
+- `fig_metric5_reciprocity.png` - Helping rate by turn (conditional on partner help)
+
+### 5. Analyze Selfish Agent (Extension 2)
+
+Investigate why the selfish agent exhibits reciprocity despite no reciprocity reward:
+
+```bash
+python analyze_selfish.py
+```
+
+This will:
+- Run the selfish agent on all human game replays
+- Collect per-turn features (helping, partner helping, backpack, energy, distance, etc.)
+- Generate analysis figures in `figures/`:
+  - `selfish_helping_by_state.png` - 2×3 panel of helping patterns by state features
+  - `selfish_reciprocity_comparison.png` - Reciprocity gap visualization
+- Save raw per-turn data to `results/selfish_agent_turns.csv`
+- Print summary statistics to stdout
+
 ## Reward Modes
 
-The agents are trained with four different reward structures:
+The agents are trained with five different reward structures:
 
 | Mode | Description | Hypothesis |
 |------|-------------|-----------|
@@ -86,20 +124,30 @@ The agents are trained with four different reward structures:
 | **Capacity** | Bonus when picking partner veggies with spare backpack capacity | Tests if humans help when they have capacity |
 | **Proximity** | Bonus inversely proportional to distance to partner vegetables | Tests if proximity drives helping |
 | **Reciprocity** | Bonus based on partner's recent helping history | Tests if humans reciprocate help |
+| **Capacity+Proximity** | Mixture: 0.5 × capacity_bonus + 0.5 × proximity_bonus | Tests if combined reward better matches human behavior |
 
 ## Results
 
-Summary of overall helping rates:
+Summary of overall helping rates across all trained agents:
 
 ```
-Capacity:    6.6% (best match to humans)
-Reciprocity: 4.6%
-Selfish:     3.6%
-Proximity:   3.4%
-Humans:      7.6% (baseline)
+Capacity:           7.2% (best match to humans)
+Reciprocity:        7.1%
+Proximity:          6.9%
+Capacity+Proximity: 5.9% (mixture reward)
+Selfish:            3.8%
+Humans:             8.2% (baseline)
 ```
 
-**Finding:** The capacity-based reward agent (6.6%) most closely reproduces human behavior, suggesting **backpack capacity surplus is the primary driver of spontaneous helping**.
+**Key Finding:** The **capacity-based reward agent (7.2%)** most closely reproduces human behavior, suggesting **backpack capacity surplus is the primary driver of spontaneous helping**. 
+
+**Extension 1 Result:** The capacity+proximity mixture (5.9%) underperforms compared to capacity alone, indicating that adding proximity penalties reduces behavior alignment with humans. This suggests humans prioritize capacity availability over distance when deciding to help.
+
+**Extension 2 Discovery:** The selfish agent exhibits near-zero reciprocity (-0.2%) despite having no reciprocity reward. Analysis shows:
+- Helping rate when partner helped: 6.0%
+- Helping rate when partner did not help: 8.0%
+- **Actual reciprocal effect is slightly negative**, suggesting the agent helps less when partner helped
+- This counterintuitive pattern arises from learned capacity and proximity heuristics, not explicit reciprocal logic
 
 ## Evaluation Metrics
 
@@ -142,6 +190,19 @@ Each CSV includes agent and human data for direct comparison and plotting.
   - Filters human data to match agent color and computes 5 metrics
   - Outputs comparison CSVs and summary statistics
 
+- **`plot_results.py`** - Visualization script
+  - Loads metric CSVs from evaluation results
+  - Generates 5 publication-quality figures (one per metric)
+  - Each figure has 6 subplots: 5 agent modes + human reference panel
+  - Uses consistent color scheme and formatting for easy comparison
+  
+- **`analyze_selfish.py`** - Selfish agent analysis (Extension 2)
+  - Investigates unexpected reciprocity in the selfish agent
+  - Runs selfish agent on all human game replays collecting per-turn features
+  - Generates 2×3 panel figure showing helping patterns by state factors
+  - Computes reciprocity gap and analyzes state features affecting helping
+  - Outputs `selfish_agent_turns.csv` with raw per-turn data for further analysis
+
 ## Implementation Details
 
 ### Reward Computation
@@ -158,6 +219,47 @@ if helping_action:
 ```
 
 This ensures fair measurement of spare capacity at decision time, not after the item is picked up.
+
+## Extensions
+
+### Extension 1: Capacity+Proximity Mixture Reward
+A fifth agent is trained with a mixture of capacity and proximity rewards (50/50):
+```python
+reward = 0.5 * capacity_bonus + 0.5 * proximity_bonus
+```
+
+**Training & Evaluation:**
+- Model: `models/ppo_capacity_proximity.zip`
+- Metrics: `results/metrics_capacity_proximity_metric*.csv` (5 behavioral metrics)
+- Overall helping rate: **5.9%**
+
+**Finding:** Combining capacity and proximity rewards produces *worse* human alignment (5.9%) compared to capacity alone (7.2%). This suggests that proximity penalties actual *reduce* helping behavior, and humans prioritize backpack capacity surplus over closeness to vegetables when deciding to help.
+
+**Behavioral Pattern Difference:**
+- Capacity only: Strong helping when low-fill backpack available
+- Cap+Prox hybrid: Penalizes distant vegetables, suppressing helping despite capacity
+
+### Extension 2: Selfish Agent Analysis  
+The selfish agent shows unexpected patterns in reciprocity despite having *zero* reciprocity reward shaping. `analyze_selfish.py` investigates by:
+- Running selfish agent (`models/ppo_selfish.zip`) on all human game replays
+- Collecting per-turn features: backpack fill, energy, distance to partner, history
+- Analyzing 2×3 panel of helping patterns by state factors
+- Computing reciprocity metrics and their drivers
+
+**Results:**
+- Output: `selfish_agent_analysis.txt` (summary statistics)
+- Per-turn data: `selfish_agent_turns.csv` (raw features for further analysis)
+- Figures: 
+  - `selfish_helping_by_state.png` - Helping patterns by BP fill, energy, distance, partner need, turn #, and reciprocity
+  - `selfish_reciprocity_comparison.png` - Side-by-side comparison of helping rates
+
+**Key Discovery:**
+The selfish agent exhibits **anti-reciprocity**:
+- Helping rate when partner helped last: 6.0%
+- Helping rate when partner did NOT help: 8.0%
+- **Net effect: -2.0%** (agent helps *less* when partner helped)
+
+This counterintuitive pattern shows that emergent social behavior is *not* a simple product of the reward structure, but arises from complex interactions between learned capacity heuristics, state representations, and game dynamics. The agent learns to help based on backpack capacity and item proximity, not social history.
 
 ### Environment Gotchas
 
@@ -186,7 +288,8 @@ Key packages (see `environment.yml`):
 
 ## Future Work
 
-- [ ] Mixture of reward functions (capacity + reciprocity)
+- [x] Mixture of reward functions (capacity + proximity) → **Extension 1: Implemented**
+- [x] Analyze unexpected reciprocity in selfish agent → **Extension 2: Implemented in `analyze_selfish.py`**
 - [ ] Hyperparameter tuning for better human alignment
 - [ ] Analyze learned value functions to understand decision-making
 - [ ] Test agents in novel environments not seen in training

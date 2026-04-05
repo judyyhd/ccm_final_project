@@ -1,0 +1,28 @@
+
+1. HELPING RATE BY PARTNER'S PREVIOUS TURN:
+------------------------------------------------------------
+  Partner Did Not Help           (n=31378): 0.080
+  Partner Helped                 (n=19568): 0.060
+
+  Reciprocity Gap: -0.0199
+  (Positive = agent helps more when partner helped)
+
+2. STATE FEATURES BY HELPING BEHAVIOR:
+------------------------------------------------------------
+
+  When Agent Did Not Help (n=47273):
+    Mean BP Fill:              19.52%
+    Mean Energy:              0.52
+    Mean Distance to Partner: 8.20
+    Partner Needs Help:       0.891
+
+  When Agent Helped (n=3673):
+    Mean BP Fill:              23.79%
+    Mean Energy:              0.79
+    Mean Distance to Partner: 5.67
+    Partner Needs Help:       0.896
+
+3. Generating figures...
+  Saved figures/selfish_helping_by_state.png
+
+Done!

@@ -18,9 +18,6 @@ import utils
 
 # Configure logging
 log_file = os.path.join(os.path.dirname(__file__), "evaluation_output.txt")
-# Clear the log file on startup
-with open(log_file, "w") as f:
-    f.write("")
     
 logging.basicConfig(
     level=logging.INFO,
@@ -509,7 +506,15 @@ def evaluate_agent(reward_mode: str, output_dir: str = "models"):
 
 def main():
     """Evaluate all trained agents."""
-    reward_modes = ["selfish", "capacity", "proximity", "reciprocity"]
+    # Clear the log file at the start of this run
+    with open(log_file, "w") as f:
+        f.write("")
+    
+    logger.info("="*60)
+    logger.info("EVALUATION RUN STARTED")
+    logger.info("="*60)
+    
+    reward_modes = ["selfish", "capacity", "proximity", "reciprocity", "capacity_proximity"]
 
     for reward_mode in reward_modes:
         try:
