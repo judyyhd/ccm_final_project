@@ -33,25 +33,34 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def _build_patch_uniformity_map(trialdf_path: str) -> dict:
+def _build_patch_uniformity_map(env_features_path: str = None) -> dict:
     """
-    Build mapping from objectLayer to patchUniformity from trialdf.csv.
+    Build mapping from objectLayer to patchUniformity from environment_features.csv.
     
     Args:
-        trialdf_path: Path to trialdf.csv file
+        env_features_path: Path to environment_features.csv file
         
     Returns:
         Dict mapping objectLayer -> patchUniformity
     """
+    if env_features_path is None:
+        env_features_path = "../data/environment_features.csv"
+    
     # If path is relative, resolve it relative to this file's location
-    if not os.path.isabs(trialdf_path):
-        trialdf_path = os.path.join(os.path.dirname(__file__), trialdf_path)
+    if not os.path.isabs(env_features_path):
+        env_features_path = os.path.join(os.path.dirname(__file__), env_features_path)
     
-    df = pd.read_csv(trialdf_path)
+    logger.info(f"Loading patch uniformity from {env_features_path}")
     
-    # Check if patchUniformity column exists
-    if "patchUniformity" not in df.columns:
-        logger.warning("Column 'patchUniformity' not found in trialdf.csv")
+    if not os.path.exists(env_features_path):
+        logger.warning(f"File not found: {env_features_path}")
+        return {}
+    
+    df = pd.read_csv(env_features_path)
+    
+    # Check if required columns exist
+    if "objectLayer" not in df.columns or "patchUniformity" not in df.columns:
+        logger.warning("Columns 'objectLayer' or 'patchUniformity' not found in environment_features.csv")
         return {}
     
     # Drop rows with NaN in objectLayer or patchUniformity
@@ -60,16 +69,14 @@ def _build_patch_uniformity_map(trialdf_path: str) -> dict:
     # Keep only first row per unique objectLayer (should be consistent within same objectLayer)
     df = df.drop_duplicates(subset=["objectLayer"], keep="first")
     
-    # Build mapping
-    patch_map = dict(zip(df["objectLayer"], df["patchUniformity"]))
+    # Build mapping - convert patchUniformity to string for consistency
+    patch_map = dict(zip(df["objectLayer"], df["patchUniformity"].astype(str)))
     
-    # Add fallback for any unknown layers
     if not patch_map:
-        logger.warning("No valid patchUniformity mappings found in trialdf.csv")
-        patch_map = {}
+        logger.warning("No valid patchUniformity mappings found in environment_features.csv")
+    else:
+        logger.info(f"Loaded {len(patch_map)} patch uniformity mappings")
     
-    return patch_map
-
     return patch_map
 
 
@@ -161,6 +168,7 @@ def load_human_metrics(filepath: str, agent_color: str = "red"):
     """
     Load human behavioral metrics from trialdf.csv.
     Filter to only rows where agent (player) is agent_color.
+    Merge in patchUniformity from environment_features.csv.
     """
     # If filepath is relative, resolve it relative to this file's location
     if not os.path.isabs(filepath):
@@ -168,6 +176,12 @@ def load_human_metrics(filepath: str, agent_color: str = "red"):
     
     df = pd.read_csv(filepath)
 
+    # Load environment features and merge on objectLayer
+    env_features_path = os.path.join(os.path.dirname(__file__), "../data/environment_features.csv")
+    if os.path.exists(env_features_path):
+        env_df = pd.read_csv(env_features_path)[["objectLayer", "patchUniformity"]]
+        df = df.merge(env_df, on="objectLayer", how="left")
+    
     # Map subjid to agent color (red or purple) based on suffix
     df["agent_color"] = df["subjid"].str.extract(r"(red|purple)$")
 
@@ -196,7 +210,7 @@ def load_human_metrics(filepath: str, agent_color: str = "red"):
                 "ownEnergy": own_energy,
                 "ownDistanceToClosestOtherVeg": own_distance,
                 "partner_helped_lasttrial": partner_helped,
-                "patchUniformity": patch_uniformity,
+                "patchUniformity": str(patch_uniformity),  # Convert to string for consistency
                 "turnCount": turn_count,
             }
             metrics_list.append(metrics)
@@ -431,7 +445,7 @@ def evaluate_agent(reward_mode: str, output_dir: str = "models"):
 
     # Build patch uniformity mapping
     logger.info("Building patch uniformity mapping...")
-    patch_uniformity_map = _build_patch_uniformity_map("../data/trialdf.csv")
+    patch_uniformity_map = _build_patch_uniformity_map()
 
     # Compute all metrics
     metric_1 = compute_metric_1_backpack_size(agent_metrics_all, human_metrics_all)
