@@ -1,4 +1,5 @@
 import csv
+import os
 import farmgame
 
 def print_game(game: farmgame.Game) -> None:
@@ -82,6 +83,10 @@ def ascending_trial_num(file):
 		yield previous_row
 
 def load_sessions(filename: str, max_amount=-1, print_progress=True) -> dict[str, farmgame.Session]:
+	# If filename is relative, resolve it relative to the farmgame_io.py file location
+	if not os.path.isabs(filename):
+		filename = os.path.join(os.path.dirname(__file__), filename)
+	
 	sessions = {}
 	with open(filename) as in_file:
 		for row in ascending_trial_num(in_file):
