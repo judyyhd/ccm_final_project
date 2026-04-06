@@ -396,7 +396,7 @@ def compute_metric_5_conditional_on_partner_help(agent_metrics_list, human_metri
     return result
 
 
-def evaluate_agent(reward_mode: str, output_dir: str = "models"):
+def evaluate_agent(reward_mode: str, output_dir: str = "models", tag: str = ""):
     """
     Evaluate a trained agent and compute metrics.
 
@@ -409,7 +409,8 @@ def evaluate_agent(reward_mode: str, output_dir: str = "models"):
     logger.info(f"{'='*60}")
 
     # Load the trained model
-    model_path = os.path.join(output_dir, f"ppo_{reward_mode}")
+    suffix = f"_{tag}" if tag else ""
+    model_path = os.path.join(output_dir, f"ppo_{reward_mode}{suffix}")
     try:
         agent = PPO.load(model_path)
         logger.info(f"Loaded model from {model_path}.zip")
@@ -453,36 +454,37 @@ def evaluate_agent(reward_mode: str, output_dir: str = "models"):
 
     # Save results to CSV
     os.makedirs("results", exist_ok=True)
+    result_prefix = f"results/metrics_{reward_mode}{suffix}"
 
     # Metric 1: Backpack Size
     if metric_1["backpack_size"]:
         df1 = pd.DataFrame(metric_1)
-        df1.to_csv(f"results/metrics_{reward_mode}_metric1_backpack.csv", index=False)
-        logger.info(f"Saved metric 1 to results/metrics_{reward_mode}_metric1_backpack.csv")
+        df1.to_csv(f"{result_prefix}_metric1_backpack.csv", index=False)
+        logger.info(f"Saved metric 1 to {result_prefix}_metric1_backpack.csv")
 
     # Metric 2: Patch Uniformity
     if metric_2["patchUniformity"]:
         df2 = pd.DataFrame(metric_2)
-        df2.to_csv(f"results/metrics_{reward_mode}_metric2_patchuniformity.csv", index=False)
-        logger.info(f"Saved metric 2 to results/metrics_{reward_mode}_metric2_patchuniformity.csv")
+        df2.to_csv(f"{result_prefix}_metric2_patchuniformity.csv", index=False)
+        logger.info(f"Saved metric 2 to {result_prefix}_metric2_patchuniformity.csv")
 
     # Metric 3: Distance
     if metric_3["distance_bin"]:
         df3 = pd.DataFrame(metric_3)
-        df3.to_csv(f"results/metrics_{reward_mode}_metric3_distance.csv", index=False)
-        logger.info(f"Saved metric 3 to results/metrics_{reward_mode}_metric3_distance.csv")
+        df3.to_csv(f"{result_prefix}_metric3_distance.csv", index=False)
+        logger.info(f"Saved metric 3 to {result_prefix}_metric3_distance.csv")
 
     # Metric 4: Energy
     if metric_4["energy_bin"]:
         df4 = pd.DataFrame(metric_4)
-        df4.to_csv(f"results/metrics_{reward_mode}_metric4_energy.csv", index=False)
-        logger.info(f"Saved metric 4 to results/metrics_{reward_mode}_metric4_energy.csv")
+        df4.to_csv(f"{result_prefix}_metric4_energy.csv", index=False)
+        logger.info(f"Saved metric 4 to {result_prefix}_metric4_energy.csv")
 
     # Metric 5: Partner Reciprocity
     if metric_5["partner_helped_last"]:
         df5 = pd.DataFrame(metric_5)
-        df5.to_csv(f"results/metrics_{reward_mode}_metric5_reciprocity.csv", index=False)
-        logger.info(f"Saved metric 5 to results/metrics_{reward_mode}_metric5_reciprocity.csv")
+        df5.to_csv(f"{result_prefix}_metric5_reciprocity.csv", index=False)
+        logger.info(f"Saved metric 5 to {result_prefix}_metric5_reciprocity.csv")
 
     # Print summary
     logger.info("\n" + "-" * 60)
@@ -506,6 +508,17 @@ def evaluate_agent(reward_mode: str, output_dir: str = "models"):
 
 def main():
     """Evaluate all trained agents."""
+    import argparse
+    parser = argparse.ArgumentParser(description="Evaluate trained PPO agents")
+    parser.add_argument("--mode", type=str, default="all",
+        choices=["all", "selfish", "capacity", "proximity", "reciprocity", "capacity_proximity"],
+        help="Which reward mode to evaluate (default: all)")
+    parser.add_argument("--tag", type=str, default="",
+        help="Model tag, e.g. 'v2' loads ppo_capacity_v2.zip (default: none)")
+    parser.add_argument("--output_dir", type=str, default="models",
+        help="Directory where models are saved (default: models)")
+    args = parser.parse_args()
+
     # Clear the log file at the start of this run
     with open(log_file, "w") as f:
         f.write("")
@@ -513,12 +526,15 @@ def main():
     logger.info("="*60)
     logger.info("EVALUATION RUN STARTED")
     logger.info("="*60)
-    
-    reward_modes = ["selfish", "capacity", "proximity", "reciprocity", "capacity_proximity"]
 
-    for reward_mode in reward_modes:
+    modes = (
+        ["selfish", "capacity", "proximity", "reciprocity", "capacity_proximity"]
+        if args.mode == "all" else [args.mode]
+    )
+
+    for reward_mode in modes:
         try:
-            evaluate_agent(reward_mode)
+            evaluate_agent(reward_mode, output_dir=args.output_dir, tag=args.tag)
         except Exception as e:
             logger.info(f"Error evaluating agent with reward_mode='{reward_mode}': {e}")
             import traceback
