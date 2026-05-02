@@ -67,7 +67,8 @@ class FarmEnv(gym.Env):
 
         # Track state and replay
         self.state = None
-        self.replay_index = 0  # Index into human_game
+        self.partner_transitions = []  # Only partner's turns from human replay
+        self.replay_index = 0  # Index into partner_transitions
         self.partner_helped_history = [
             False for _ in range(history_window)
         ]  # Rolling window
@@ -76,7 +77,12 @@ class FarmEnv(gym.Env):
         """Reset environment to initial state of a new game."""
         super().reset(seed=seed)
 
-        # Reset replay index
+        # Reset replay: prefilter only partner's transitions
+        partner_color = "purple" if self.agent_color == "red" else "red"
+        self.partner_transitions = [
+            t for t in self.human_game
+            if t.state.whose_turn()["color"] == partner_color
+        ]
         self.replay_index = 0
         self.partner_helped_history = [False for _ in range(self.history_window)]
 
@@ -92,6 +98,8 @@ class FarmEnv(gym.Env):
         partner_color = "purple" if self.agent_color == "red" else "red"
         while not self.state.is_done() and self.state.whose_turn()["color"] == partner_color:
             partner_action = self._get_partner_action()
+            if partner_action is None:
+                break
             partner_helped = farmgame.Transition(self.state, partner_action).is_helping(partner_color)
             self.partner_helped_history.insert(0, partner_helped)
             self.partner_helped_history = self.partner_helped_history[:self.history_window]
@@ -146,15 +154,23 @@ class FarmEnv(gym.Env):
         # Auto-step through partner's turn
         partner_color = "purple" if self.agent_color == "red" else "red"
         while self.state.whose_turn()["color"] == partner_color and not self.state.is_done():
-            # Get partner's action from replay
             partner_action = self._get_partner_action()
+            if partner_action is None:
+                # No legal actions — force terminate
+                obs = self._get_obs()
+                reward = self._compute_reward(
+                    agent_action,
+                    is_final=True,
+                    pre_bp_contents=pre_action_bp_contents,
+                    pre_bp_capacity=pre_action_bp_capacity,
+                    pre_agent_loc=pre_action_agent_loc,
+                )
+                return obs, reward, True, False, {}
             partner_helped_this_action = (
                 farmgame.Transition(self.state, partner_action).is_helping(partner_color)
             )
-            # Track if partner helped on this turn
             self.partner_helped_history.insert(0, partner_helped_this_action)
             self.partner_helped_history = self.partner_helped_history[:self.history_window]
-
             self.state = self.state.take_action(partner_action, inplace=False)
 
         # Compute reward for agent's action
@@ -177,17 +193,31 @@ class FarmEnv(gym.Env):
     def _get_partner_action(self) -> farmgame.Action:
         """
         Get the next partner action from the human replay.
-        If replay is exhausted, use first legal action as fallback.
+        Uses partner-only transitions to avoid index misalignment.
+        If replay is exhausted, use greedy fallback:
+          1. pick any remaining veggie
+          2. go to box if carrying veggies
+          3. otherwise pass
         """
-        if self.replay_index < len(self.human_game):
-            transition = self.human_game[self.replay_index]
+        if self.replay_index < len(self.partner_transitions):
+            transition = self.partner_transitions[self.replay_index]
             self.replay_index += 1
-            # Return the action from the replay
             return transition.action
-        else:
-            # Fallback: use first legal action
-            legal_actions = self.state.legal_actions()
-            return legal_actions[0] if legal_actions else None
+
+        # Greedy fallback
+        legal_actions = self.state.legal_actions()
+        if not legal_actions:
+            return None
+
+        veggie_actions = [a for a in legal_actions if a.type == farmgame.ActionType.veggie]
+        if veggie_actions:
+            return veggie_actions[0]
+
+        box_actions = [a for a in legal_actions if a.type == farmgame.ActionType.box]
+        if box_actions:
+            return box_actions[0]
+
+        return legal_actions[0]
 
     def _get_obs(self) -> np.ndarray:
         """Build observation vector from current state."""
@@ -214,9 +244,7 @@ class FarmEnv(gym.Env):
         obs.append(len(partner["backpack"]["contents"]) / partner["backpack"]["capacity"])
 
         # Items (up to max_items)
-        items_padded = self.state.items + [None] * (
-            self.max_items - len(self.state.items)
-        )
+        items_padded = sorted(self.state.items, key=lambda x: x.id) + [None] * (self.max_items - len(self.state.items))
         for i in range(self.max_items):
             item = items_padded[i]
             if item is not None:
