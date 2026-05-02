@@ -84,11 +84,8 @@ def train_ppo_agent(
         for i in range(n_envs)
     ]
 
-    try:
-        vec_env = SubprocVecEnv(env_fns)
-    except Exception as e:
-        logger.info(f"SubprocVecEnv failed: {e}. Using DummyVecEnv instead.")
-        vec_env = DummyVecEnv(env_fns)
+   
+    vec_env = DummyVecEnv(env_fns)
 
     logger.info("Initializing PPO agent...")
     model = PPO(
