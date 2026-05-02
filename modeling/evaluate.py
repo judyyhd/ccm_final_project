@@ -93,8 +93,9 @@ def run_agent_episode(agent, human_game, agent_color="red", reward_mode="selfish
 
     metrics_list = []
     turn_number = 0
+    max_turns = 200  
 
-    while True:
+    while turn_number < max_turns:
         # Get agent's action
         action_idx, _ = agent.predict(obs, deterministic=True)
 
@@ -188,6 +189,12 @@ def load_human_metrics(filepath: str, agent_color: str = "red"):
     # Filter to only non-gameover rows
     df = df[df["gameover"] == False].reset_index(drop=True)
 
+    df["player_turn"] = (
+        df.groupby(["session", "gameNum"])["turnCount"]
+        .rank(method="first")
+        .astype(int) - 1  
+    )
+
     # Extract or compute metrics
     metrics_list = []
     for _, row in df.iterrows():
@@ -200,15 +207,17 @@ def load_human_metrics(filepath: str, agent_color: str = "red"):
             partner_helped = int(row.get("partner_helped_lasttrial", 0)) if pd.notna(row.get("partner_helped_lasttrial")) else 0
             patch_uniformity = row.get("patchUniformity", "unknown") if pd.notna(row.get("patchUniformity")) else "unknown"
             turn_count = int(row.get("turnCount", 0)) if pd.notna(row.get("turnCount")) else 0
-            
+            player_turn = int(row.get("player_turn", 0)) if pd.notna(row.get("player_turn")) else 0
+
             metrics = {
                 "helping_event": helping_event,
                 "ownBPsize": own_bp_size,
                 "ownEnergy": own_energy,
                 "ownDistanceToClosestOtherVeg": own_distance,
                 "partner_helped_lasttrial": partner_helped,
-                "patchUniformity": str(patch_uniformity),  # Convert to string for consistency
+                "patchUniformity": str(patch_uniformity),
                 "turnCount": turn_count,
+                "player_turn": player_turn,  
             }
             metrics_list.append(metrics)
         except Exception as e:
@@ -379,7 +388,7 @@ def compute_metric_5_conditional_on_partner_help(agent_metrics_list, human_metri
                 (agent_df["partner_helped_lasttrial"] == (1 if partner_helped else 0))
             ]
             human_subset = human_df[
-                (human_df["turnCount"] == turn) & 
+                (human_df["player_turn"] == turn) &  
                 (human_df["partner_helped_lasttrial"] == (1 if partner_helped else 0))
             ]
 
