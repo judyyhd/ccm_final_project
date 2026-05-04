@@ -5,117 +5,117 @@ EVALUATION RUN STARTED
 ============================================================
 Evaluating PPO agent with reward_mode='selfish'
 ============================================================
-Loaded model from models/ppo_selfish.zip
+Loaded model from models/ppo_selfish_v4.zip
 Loading human sessions for evaluation...
 Evaluated agent on 3768 games.
 Loading human metrics from trialdf.csv...
 Building patch uniformity mapping...
-Loading patch uniformity from /Users/judyyhd/Desktop/Spring 26/Computational Cognitive Modeling/ccm_final_project/modeling/../data/environment_features.csv
+Loading patch uniformity from /Users/huizhenjin/Desktop/ccm_final_project/modeling/../data/environment_features.csv
 Loaded 12 patch uniformity mappings
-Saved metric 1 to results/metrics_selfish_metric1_backpack.csv
-Saved metric 2 to results/metrics_selfish_metric2_patchuniformity.csv
-Saved metric 3 to results/metrics_selfish_metric3_distance.csv
-Saved metric 4 to results/metrics_selfish_metric4_energy.csv
-Saved metric 5 to results/metrics_selfish_metric5_reciprocity.csv
+Saved metric 1 to results/metrics_selfish_v4_metric1_backpack.csv
+Saved metric 2 to results/metrics_selfish_v4_metric2_patchuniformity.csv
+Saved metric 3 to results/metrics_selfish_v4_metric3_distance.csv
+Saved metric 4 to results/metrics_selfish_v4_metric4_energy.csv
+Saved metric 5 to results/metrics_selfish_v4_metric5_reciprocity.csv
 
 ------------------------------------------------------------
 Summary for reward_mode='selfish':
 ------------------------------------------------------------
-Agent overall helping rate: 0.038
+Agent overall helping rate: 0.003
 Human overall helping rate: 0.082
-Difference: -0.044
+Difference: -0.079
 
 ============================================================
 Evaluating PPO agent with reward_mode='capacity'
 ============================================================
-Loaded model from models/ppo_capacity.zip
+Loaded model from models/ppo_capacity_v4.zip
 Loading human sessions for evaluation...
 Evaluated agent on 3768 games.
 Loading human metrics from trialdf.csv...
 Building patch uniformity mapping...
-Loading patch uniformity from /Users/judyyhd/Desktop/Spring 26/Computational Cognitive Modeling/ccm_final_project/modeling/../data/environment_features.csv
+Loading patch uniformity from /Users/huizhenjin/Desktop/ccm_final_project/modeling/../data/environment_features.csv
 Loaded 12 patch uniformity mappings
-Saved metric 1 to results/metrics_capacity_metric1_backpack.csv
-Saved metric 2 to results/metrics_capacity_metric2_patchuniformity.csv
-Saved metric 3 to results/metrics_capacity_metric3_distance.csv
-Saved metric 4 to results/metrics_capacity_metric4_energy.csv
-Saved metric 5 to results/metrics_capacity_metric5_reciprocity.csv
+Saved metric 1 to results/metrics_capacity_v4_metric1_backpack.csv
+Saved metric 2 to results/metrics_capacity_v4_metric2_patchuniformity.csv
+Saved metric 3 to results/metrics_capacity_v4_metric3_distance.csv
+Saved metric 4 to results/metrics_capacity_v4_metric4_energy.csv
+Saved metric 5 to results/metrics_capacity_v4_metric5_reciprocity.csv
 
 ------------------------------------------------------------
 Summary for reward_mode='capacity':
 ------------------------------------------------------------
-Agent overall helping rate: 0.072
+Agent overall helping rate: 0.080
 Human overall helping rate: 0.082
-Difference: -0.010
+Difference: -0.002
 
 ============================================================
 Evaluating PPO agent with reward_mode='proximity'
 ============================================================
-Loaded model from models/ppo_proximity.zip
+Loaded model from models/ppo_proximity_v4.zip
 Loading human sessions for evaluation...
 Evaluated agent on 3768 games.
 Loading human metrics from trialdf.csv...
 Building patch uniformity mapping...
-Loading patch uniformity from /Users/judyyhd/Desktop/Spring 26/Computational Cognitive Modeling/ccm_final_project/modeling/../data/environment_features.csv
+Loading patch uniformity from /Users/huizhenjin/Desktop/ccm_final_project/modeling/../data/environment_features.csv
 Loaded 12 patch uniformity mappings
-Saved metric 1 to results/metrics_proximity_metric1_backpack.csv
-Saved metric 2 to results/metrics_proximity_metric2_patchuniformity.csv
-Saved metric 3 to results/metrics_proximity_metric3_distance.csv
-Saved metric 4 to results/metrics_proximity_metric4_energy.csv
-Saved metric 5 to results/metrics_proximity_metric5_reciprocity.csv
+Saved metric 1 to results/metrics_proximity_v4_metric1_backpack.csv
+Saved metric 2 to results/metrics_proximity_v4_metric2_patchuniformity.csv
+Saved metric 3 to results/metrics_proximity_v4_metric3_distance.csv
+Saved metric 4 to results/metrics_proximity_v4_metric4_energy.csv
+Saved metric 5 to results/metrics_proximity_v4_metric5_reciprocity.csv
 
 ------------------------------------------------------------
 Summary for reward_mode='proximity':
 ------------------------------------------------------------
-Agent overall helping rate: 0.069
+Agent overall helping rate: 0.051
 Human overall helping rate: 0.082
-Difference: -0.013
+Difference: -0.031
 
 ============================================================
 Evaluating PPO agent with reward_mode='reciprocity'
 ============================================================
-Loaded model from models/ppo_reciprocity.zip
+Loaded model from models/ppo_reciprocity_v4.zip
 Loading human sessions for evaluation...
 Evaluated agent on 3768 games.
 Loading human metrics from trialdf.csv...
 Building patch uniformity mapping...
-Loading patch uniformity from /Users/judyyhd/Desktop/Spring 26/Computational Cognitive Modeling/ccm_final_project/modeling/../data/environment_features.csv
+Loading patch uniformity from /Users/huizhenjin/Desktop/ccm_final_project/modeling/../data/environment_features.csv
 Loaded 12 patch uniformity mappings
-Saved metric 1 to results/metrics_reciprocity_metric1_backpack.csv
-Saved metric 2 to results/metrics_reciprocity_metric2_patchuniformity.csv
-Saved metric 3 to results/metrics_reciprocity_metric3_distance.csv
-Saved metric 4 to results/metrics_reciprocity_metric4_energy.csv
-Saved metric 5 to results/metrics_reciprocity_metric5_reciprocity.csv
+Saved metric 1 to results/metrics_reciprocity_v4_metric1_backpack.csv
+Saved metric 2 to results/metrics_reciprocity_v4_metric2_patchuniformity.csv
+Saved metric 3 to results/metrics_reciprocity_v4_metric3_distance.csv
+Saved metric 4 to results/metrics_reciprocity_v4_metric4_energy.csv
+Saved metric 5 to results/metrics_reciprocity_v4_metric5_reciprocity.csv
 
 ------------------------------------------------------------
 Summary for reward_mode='reciprocity':
 ------------------------------------------------------------
-Agent overall helping rate: 0.071
+Agent overall helping rate: 0.015
 Human overall helping rate: 0.082
-Difference: -0.011
+Difference: -0.067
 
 ============================================================
 Evaluating PPO agent with reward_mode='capacity_proximity'
 ============================================================
-Loaded model from models/ppo_capacity_proximity.zip
+Loaded model from models/ppo_capacity_proximity_v4.zip
 Loading human sessions for evaluation...
 Evaluated agent on 3768 games.
 Loading human metrics from trialdf.csv...
 Building patch uniformity mapping...
-Loading patch uniformity from /Users/judyyhd/Desktop/Spring 26/Computational Cognitive Modeling/ccm_final_project/modeling/../data/environment_features.csv
+Loading patch uniformity from /Users/huizhenjin/Desktop/ccm_final_project/modeling/../data/environment_features.csv
 Loaded 12 patch uniformity mappings
-Saved metric 1 to results/metrics_capacity_proximity_metric1_backpack.csv
-Saved metric 2 to results/metrics_capacity_proximity_metric2_patchuniformity.csv
-Saved metric 3 to results/metrics_capacity_proximity_metric3_distance.csv
-Saved metric 4 to results/metrics_capacity_proximity_metric4_energy.csv
-Saved metric 5 to results/metrics_capacity_proximity_metric5_reciprocity.csv
+Saved metric 1 to results/metrics_capacity_proximity_v4_metric1_backpack.csv
+Saved metric 2 to results/metrics_capacity_proximity_v4_metric2_patchuniformity.csv
+Saved metric 3 to results/metrics_capacity_proximity_v4_metric3_distance.csv
+Saved metric 4 to results/metrics_capacity_proximity_v4_metric4_energy.csv
+Saved metric 5 to results/metrics_capacity_proximity_v4_metric5_reciprocity.csv
 
 ------------------------------------------------------------
 Summary for reward_mode='capacity_proximity':
 ------------------------------------------------------------
-Agent overall helping rate: 0.059
+Agent overall helping rate: 0.162
 Human overall helping rate: 0.082
-Difference: -0.023
+Difference: 0.080
 
 ============================================================
 Evaluation complete!
