@@ -5,117 +5,117 @@ EVALUATION RUN STARTED
 ============================================================
 Evaluating PPO agent with reward_mode='selfish'
 ============================================================
-Loaded model from models/ppo_selfish_v4.zip
+Loaded model from models/ppo_selfish_v4.1.zip
 Loading human sessions for evaluation...
 Evaluated agent on 3768 games.
 Loading human metrics from trialdf.csv...
 Building patch uniformity mapping...
 Loading patch uniformity from /Users/huizhenjin/Desktop/ccm_final_project/modeling/../data/environment_features.csv
 Loaded 12 patch uniformity mappings
-Saved metric 1 to results/metrics_selfish_v4_metric1_backpack.csv
-Saved metric 2 to results/metrics_selfish_v4_metric2_patchuniformity.csv
-Saved metric 3 to results/metrics_selfish_v4_metric3_distance.csv
-Saved metric 4 to results/metrics_selfish_v4_metric4_energy.csv
-Saved metric 5 to results/metrics_selfish_v4_metric5_reciprocity.csv
+Saved metric 1 to results/metrics_selfish_v4.1_metric1_backpack.csv
+Saved metric 2 to results/metrics_selfish_v4.1_metric2_patchuniformity.csv
+Saved metric 3 to results/metrics_selfish_v4.1_metric3_distance.csv
+Saved metric 4 to results/metrics_selfish_v4.1_metric4_energy.csv
+Saved metric 5 to results/metrics_selfish_v4.1_metric5_reciprocity.csv
 
 ------------------------------------------------------------
 Summary for reward_mode='selfish':
 ------------------------------------------------------------
-Agent overall helping rate: 0.003
+Agent overall helping rate: 0.014
 Human overall helping rate: 0.082
-Difference: -0.079
+Difference: -0.068
 
 ============================================================
 Evaluating PPO agent with reward_mode='capacity'
 ============================================================
-Loaded model from models/ppo_capacity_v4.zip
+Loaded model from models/ppo_capacity_v4.1.zip
 Loading human sessions for evaluation...
 Evaluated agent on 3768 games.
 Loading human metrics from trialdf.csv...
 Building patch uniformity mapping...
 Loading patch uniformity from /Users/huizhenjin/Desktop/ccm_final_project/modeling/../data/environment_features.csv
 Loaded 12 patch uniformity mappings
-Saved metric 1 to results/metrics_capacity_v4_metric1_backpack.csv
-Saved metric 2 to results/metrics_capacity_v4_metric2_patchuniformity.csv
-Saved metric 3 to results/metrics_capacity_v4_metric3_distance.csv
-Saved metric 4 to results/metrics_capacity_v4_metric4_energy.csv
-Saved metric 5 to results/metrics_capacity_v4_metric5_reciprocity.csv
+Saved metric 1 to results/metrics_capacity_v4.1_metric1_backpack.csv
+Saved metric 2 to results/metrics_capacity_v4.1_metric2_patchuniformity.csv
+Saved metric 3 to results/metrics_capacity_v4.1_metric3_distance.csv
+Saved metric 4 to results/metrics_capacity_v4.1_metric4_energy.csv
+Saved metric 5 to results/metrics_capacity_v4.1_metric5_reciprocity.csv
 
 ------------------------------------------------------------
 Summary for reward_mode='capacity':
 ------------------------------------------------------------
-Agent overall helping rate: 0.080
+Agent overall helping rate: 0.025
 Human overall helping rate: 0.082
-Difference: -0.002
+Difference: -0.056
 
 ============================================================
 Evaluating PPO agent with reward_mode='proximity'
 ============================================================
-Loaded model from models/ppo_proximity_v4.zip
+Loaded model from models/ppo_proximity_v4.1.zip
 Loading human sessions for evaluation...
 Evaluated agent on 3768 games.
 Loading human metrics from trialdf.csv...
 Building patch uniformity mapping...
 Loading patch uniformity from /Users/huizhenjin/Desktop/ccm_final_project/modeling/../data/environment_features.csv
 Loaded 12 patch uniformity mappings
-Saved metric 1 to results/metrics_proximity_v4_metric1_backpack.csv
-Saved metric 2 to results/metrics_proximity_v4_metric2_patchuniformity.csv
-Saved metric 3 to results/metrics_proximity_v4_metric3_distance.csv
-Saved metric 4 to results/metrics_proximity_v4_metric4_energy.csv
-Saved metric 5 to results/metrics_proximity_v4_metric5_reciprocity.csv
+Saved metric 1 to results/metrics_proximity_v4.1_metric1_backpack.csv
+Saved metric 2 to results/metrics_proximity_v4.1_metric2_patchuniformity.csv
+Saved metric 3 to results/metrics_proximity_v4.1_metric3_distance.csv
+Saved metric 4 to results/metrics_proximity_v4.1_metric4_energy.csv
+Saved metric 5 to results/metrics_proximity_v4.1_metric5_reciprocity.csv
 
 ------------------------------------------------------------
 Summary for reward_mode='proximity':
 ------------------------------------------------------------
-Agent overall helping rate: 0.051
+Agent overall helping rate: 0.012
 Human overall helping rate: 0.082
-Difference: -0.031
+Difference: -0.070
 
 ============================================================
 Evaluating PPO agent with reward_mode='reciprocity'
 ============================================================
-Loaded model from models/ppo_reciprocity_v4.zip
+Loaded model from models/ppo_reciprocity_v4.1.zip
 Loading human sessions for evaluation...
 Evaluated agent on 3768 games.
 Loading human metrics from trialdf.csv...
 Building patch uniformity mapping...
 Loading patch uniformity from /Users/huizhenjin/Desktop/ccm_final_project/modeling/../data/environment_features.csv
 Loaded 12 patch uniformity mappings
-Saved metric 1 to results/metrics_reciprocity_v4_metric1_backpack.csv
-Saved metric 2 to results/metrics_reciprocity_v4_metric2_patchuniformity.csv
-Saved metric 3 to results/metrics_reciprocity_v4_metric3_distance.csv
-Saved metric 4 to results/metrics_reciprocity_v4_metric4_energy.csv
-Saved metric 5 to results/metrics_reciprocity_v4_metric5_reciprocity.csv
+Saved metric 1 to results/metrics_reciprocity_v4.1_metric1_backpack.csv
+Saved metric 2 to results/metrics_reciprocity_v4.1_metric2_patchuniformity.csv
+Saved metric 3 to results/metrics_reciprocity_v4.1_metric3_distance.csv
+Saved metric 4 to results/metrics_reciprocity_v4.1_metric4_energy.csv
+Saved metric 5 to results/metrics_reciprocity_v4.1_metric5_reciprocity.csv
 
 ------------------------------------------------------------
 Summary for reward_mode='reciprocity':
 ------------------------------------------------------------
-Agent overall helping rate: 0.015
+Agent overall helping rate: 0.088
 Human overall helping rate: 0.082
-Difference: -0.067
+Difference: 0.006
 
 ============================================================
 Evaluating PPO agent with reward_mode='capacity_proximity'
 ============================================================
-Loaded model from models/ppo_capacity_proximity_v4.zip
+Loaded model from models/ppo_capacity_proximity_v4.1.zip
 Loading human sessions for evaluation...
 Evaluated agent on 3768 games.
 Loading human metrics from trialdf.csv...
 Building patch uniformity mapping...
 Loading patch uniformity from /Users/huizhenjin/Desktop/ccm_final_project/modeling/../data/environment_features.csv
 Loaded 12 patch uniformity mappings
-Saved metric 1 to results/metrics_capacity_proximity_v4_metric1_backpack.csv
-Saved metric 2 to results/metrics_capacity_proximity_v4_metric2_patchuniformity.csv
-Saved metric 3 to results/metrics_capacity_proximity_v4_metric3_distance.csv
-Saved metric 4 to results/metrics_capacity_proximity_v4_metric4_energy.csv
-Saved metric 5 to results/metrics_capacity_proximity_v4_metric5_reciprocity.csv
+Saved metric 1 to results/metrics_capacity_proximity_v4.1_metric1_backpack.csv
+Saved metric 2 to results/metrics_capacity_proximity_v4.1_metric2_patchuniformity.csv
+Saved metric 3 to results/metrics_capacity_proximity_v4.1_metric3_distance.csv
+Saved metric 4 to results/metrics_capacity_proximity_v4.1_metric4_energy.csv
+Saved metric 5 to results/metrics_capacity_proximity_v4.1_metric5_reciprocity.csv
 
 ------------------------------------------------------------
 Summary for reward_mode='capacity_proximity':
 ------------------------------------------------------------
-Agent overall helping rate: 0.162
+Agent overall helping rate: 0.049
 Human overall helping rate: 0.082
-Difference: 0.080
+Difference: -0.033
 
 ============================================================
 Evaluation complete!
