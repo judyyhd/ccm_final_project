@@ -1,0 +1,6 @@
+reward_mode,agent_rate,human_rate
+selfish,0.006561,0.081825
+capacity,0.142193,0.081825
+proximity,0.033110,0.081825
+reciprocity,0.071986,0.081825
+capacity_proximity,0.114772,0.081825
