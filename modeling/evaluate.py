@@ -513,6 +513,13 @@ def evaluate_agent(reward_mode: str, output_dir: str = "models", tag: str = ""):
     logger.info(f"Agent overall helping rate: {agent_help_rate:.3f}")
     logger.info(f"Human overall helping rate: {human_help_rate:.3f}")
     logger.info(f"Difference: {agent_help_rate - human_help_rate:.3f}")
+    # Save overall rate for plotting
+    overall_path = f"results/overall_helping_rate{suffix}.csv"
+    write_header = not os.path.exists(overall_path)
+    with open(overall_path, "a") as f:
+        if write_header:
+            f.write("reward_mode,agent_rate,human_rate\n")
+        f.write(f"{reward_mode},{agent_help_rate:.6f},{human_help_rate:.6f}\n")
 
 
 def main():

@@ -251,25 +251,28 @@ def plot_metric_5(tag=""):
 
 
 def plot_overall_helping_rate(tag=""):
-    human_rate = None
-    agent_rates = {}
-    for m in REWARD_MODES:
-        df = load_metric_csv(1, m, tag)
-        if df is not None:
-            agent_rates[m] = df['agent_helping_rate'].mean()
-            if human_rate is None:
-                human_rate = df['human_helping_rate'].mean()
-    if not agent_rates:
-        print("No data for overall helping rate plot.")
-        return
+    # True human baseline: mean over all red-player, non-gameover turns
+    human_df = pd.read_csv("../data/trialdf.csv")
+    human_df["agent_color"] = human_df["subjid"].str.extract(r"(red|purple)$")
+    human_df = human_df[(human_df["agent_color"] == "red") & (human_df["gameover"] == False)]
+    human_rate = human_df["helping_event"].mean()
+
+    overall_path = f"results/overall_helping_rate{'_' + tag if tag else ''}.csv"
+    if os.path.exists(overall_path):
+        odf = pd.read_csv(overall_path).drop_duplicates("reward_mode", keep="last")
+        agent_rates = dict(zip(odf["reward_mode"], odf["agent_rate"]))
+    else:
+        agent_rates = {m: load_metric_csv(1, m, tag)['agent_helping_rate'].mean()
+                       for m in REWARD_MODES if load_metric_csv(1, m, tag) is not None}
+
+
     labels = [get_reward_mode_title(m) for m in REWARD_MODES if m in agent_rates]
     values = [agent_rates[m] for m in REWARD_MODES if m in agent_rates]
     fig, ax = plt.subplots(figsize=(8, 5))
     x = np.arange(len(labels))
     bars = ax.bar(x, values, color=AGENT_COLOR, label='Agent')
-    if human_rate is not None:
-        ax.axhline(human_rate, color='lightcoral', linestyle='--', linewidth=2,
-                   label=f'Human ({human_rate:.3f})')
+    ax.axhline(human_rate, color='lightcoral', linestyle='--', linewidth=2,
+               label=f'Human ({human_rate:.3f})')
     for bar, val in zip(bars, values):
         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.002,
                 f'{val:.3f}', ha='center', va='bottom', fontsize=9)
@@ -277,7 +280,7 @@ def plot_overall_helping_rate(tag=""):
     ax.set_ylabel('Overall Helping Rate')
     ax.set_title('Overall Helping Rate: Agent vs. Human Baseline')
     ax.legend()
-    ax.set_ylim(0, max(values + ([human_rate] if human_rate else [])) * 1.2)
+    ax.set_ylim(0, max(values + [human_rate]) * 1.2)
     plt.tight_layout()
     path = os.path.join(FIGURE_DIR, 'fig_overall_helping_rate.png')
     plt.savefig(path, dpi=300, bbox_inches='tight'); print(f"Saved {path}"); plt.close()
@@ -294,7 +297,8 @@ def plot_fit_scores(tag=""):
             if df is None or len(df) < 2:
                 row.append(np.nan); continue
             if n == 5:
-                df = df.groupby('partner_helped_last')[['agent_helping_rate', 'human_helping_rate']].mean().reset_index()
+            # Don't collapse — sort to align points and use full 20-row vector
+                df = df.sort_values(['partner_helped_last', 'turn']).reset_index(drop=True)
             av, hv = df['agent_helping_rate'].values, df['human_helping_rate'].values
             if len(av) < 2 or np.std(av) == 0 or np.std(hv) == 0:
                 row.append(np.nan)
