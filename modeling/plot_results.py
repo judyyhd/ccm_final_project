@@ -47,7 +47,7 @@ def load_metric_csv(metric_num, reward_mode, tag=""):
 
 
 def plot_metric_1(tag=""):
-    fig, axes = plt.subplots(1, 6, figsize=(24, 5))
+    fig, axes = plt.subplots(1, 5, figsize=(20, 5))
     fig.suptitle('Helping rate by backpack size: Agent vs. Human', fontsize=14, fontweight='bold')
     all_rates, data_map = [], {}
     for m in REWARD_MODES:
@@ -71,21 +71,15 @@ def plot_metric_1(tag=""):
         else:
             ax.text(0.5, 0.5, 'No data', ha='center', va='center', transform=ax.transAxes)
             ax.set_title(get_reward_mode_title(m))
-    ax_h = axes[5]
-    hd = next((data_map[m] for m in REWARD_MODES if m in data_map), None)
-    if hd is not None:
-        x = np.arange(len(hd))
-        ax_h.bar(x, hd['human_helping_rate'], width=0.35, color=HUMAN_COLOR)
-        ax_h.set_xlabel('Backpack Size'); ax_h.set_ylabel('Helping Rate'); ax_h.set_title('Human')
-        ax_h.set_xticks(x); ax_h.set_xticklabels(hd['backpack_size'].astype(int))
-        ax_h.set_ylim(0, ylim_max)
+
     plt.tight_layout()
-    path = os.path.join(FIGURE_DIR, 'fig_metric1_backpack.png')
+    suffix = f"_{tag}" if tag else ""
+    path = os.path.join(FIGURE_DIR, f'fig_metric1_backpack{suffix}.png')
     plt.savefig(path, dpi=300, bbox_inches='tight'); print(f"Saved {path}"); plt.close()
 
 
 def plot_metric_2(tag=""):
-    fig, axes = plt.subplots(1, 6, figsize=(24, 5))
+    fig, axes = plt.subplots(1, 5, figsize=(20, 5))
     fig.suptitle('Helping rate by patch uniformity: Agent vs. Human', fontsize=14, fontweight='bold')
     all_rates, data_map = [], {}
     for m in REWARD_MODES:
@@ -109,21 +103,15 @@ def plot_metric_2(tag=""):
         else:
             ax.text(0.5, 0.5, 'No data', ha='center', va='center', transform=ax.transAxes)
             ax.set_title(get_reward_mode_title(m))
-    ax_h = axes[5]
-    hd = next((data_map[m] for m in REWARD_MODES if m in data_map), None)
-    if hd is not None:
-        x = np.arange(len(hd))
-        ax_h.bar(x, hd['human_helping_rate'], width=0.35, color=HUMAN_COLOR)
-        ax_h.set_xlabel('Patch Uniformity'); ax_h.set_ylabel('Helping Rate'); ax_h.set_title('Human')
-        ax_h.set_xticks(x); ax_h.set_xticklabels(hd['patchUniformity'], rotation=30, ha='right')
-        ax_h.set_ylim(0, ylim_max)
+
     plt.tight_layout()
-    path = os.path.join(FIGURE_DIR, 'fig_metric2_patchuniformity.png')
+    suffix = f"_{tag}" if tag else ""
+    path = os.path.join(FIGURE_DIR, f'fig_metric2_patchuniformity{suffix}.png')
     plt.savefig(path, dpi=300, bbox_inches='tight'); print(f"Saved {path}"); plt.close()
 
 
 def plot_metric_3(tag=""):
-    fig, axes = plt.subplots(1, 6, figsize=(24, 5))
+    fig, axes = plt.subplots(1, 5, figsize=(20, 5))
     fig.suptitle('Helping rate by distance to partner vegetables: Agent vs. Human', fontsize=14, fontweight='bold')
     all_rates, data_map = [], {}
     for m in REWARD_MODES:
@@ -147,21 +135,15 @@ def plot_metric_3(tag=""):
         else:
             ax.text(0.5, 0.5, 'No data', ha='center', va='center', transform=ax.transAxes)
             ax.set_title(get_reward_mode_title(m))
-    ax_h = axes[5]
-    hd = next((data_map[m] for m in REWARD_MODES if m in data_map), None)
-    if hd is not None:
-        x = np.arange(len(hd))
-        ax_h.bar(x, hd['human_helping_rate'], width=0.35, color=HUMAN_COLOR)
-        ax_h.set_xlabel('Distance Bin'); ax_h.set_ylabel('Helping Rate'); ax_h.set_title('Human')
-        ax_h.set_xticks(x); ax_h.set_xticklabels(hd['distance_bin'], rotation=30, ha='right')
-        ax_h.set_ylim(0, ylim_max)
+   
     plt.tight_layout()
-    path = os.path.join(FIGURE_DIR, 'fig_metric3_distance.png')
+    suffix = f"_{tag}" if tag else ""
+    path = os.path.join(FIGURE_DIR, f'fig_metric3_distance{suffix}.png')    
     plt.savefig(path, dpi=300, bbox_inches='tight'); print(f"Saved {path}"); plt.close()
 
 
 def plot_metric_4(tag=""):
-    fig, axes = plt.subplots(1, 6, figsize=(24, 5))
+    fig, axes = plt.subplots(1, 5, figsize=(20, 5))
     fig.suptitle('Helping rate by remaining energy: Agent vs. Human', fontsize=14, fontweight='bold')
     all_rates, data_map = [], {}
     for m in REWARD_MODES:
@@ -185,21 +167,15 @@ def plot_metric_4(tag=""):
         else:
             ax.text(0.5, 0.5, 'No data', ha='center', va='center', transform=ax.transAxes)
             ax.set_title(get_reward_mode_title(m))
-    ax_h = axes[5]
-    hd = next((data_map[m] for m in REWARD_MODES if m in data_map), None)
-    if hd is not None:
-        x = np.arange(len(hd))
-        ax_h.bar(x, hd['human_helping_rate'], width=0.35, color=HUMAN_COLOR)
-        ax_h.set_xlabel('Energy Bin'); ax_h.set_ylabel('Helping Rate'); ax_h.set_title('Human')
-        ax_h.set_xticks(x); ax_h.set_xticklabels(hd['energy_bin'], rotation=45, ha='right')
-        ax_h.set_ylim(0, ylim_max)
+    
     plt.tight_layout()
-    path = os.path.join(FIGURE_DIR, 'fig_metric4_energy.png')
+    suffix = f"_{tag}" if tag else ""
+    path = os.path.join(FIGURE_DIR, f'fig_metric4_energy{suffix}.png')
     plt.savefig(path, dpi=300, bbox_inches='tight'); print(f"Saved {path}"); plt.close()
 
 
 def plot_metric_5(tag=""):
-    fig, axes = plt.subplots(1, 6, figsize=(24, 5))
+    fig, axes = plt.subplots(1, 5, figsize=(20, 5))
     fig.suptitle('Helping rate by turn (conditional on partner help): Agent vs. Human', fontsize=14, fontweight='bold')
     all_rates, data_map = [], {}
     for m in REWARD_MODES:
@@ -231,22 +207,11 @@ def plot_metric_5(tag=""):
         else:
             ax.text(0.5, 0.5, 'No data', ha='center', va='center', transform=ax.transAxes)
             ax.set_title(get_reward_mode_title(m))
-    ax_h = axes[5]
-    hd = next((data_map[m] for m in REWARD_MODES if m in data_map), None)
-    if hd is not None:
-        df_yes = hd[hd['partner_helped_last'] == 'Yes'].sort_values('turn')
-        df_no  = hd[hd['partner_helped_last'] == 'No'].sort_values('turn')
-        if len(df_yes) > 0:
-            ax_h.plot(df_yes['turn'] + 1, df_yes['human_helping_rate'],
-                      color=LINE_COLORS['Yes'], linestyle='--', marker='o', label='Partner helped')
-        if len(df_no) > 0:
-            ax_h.plot(df_no['turn'] + 1, df_no['human_helping_rate'],
-                      color=LINE_COLORS['No'], linestyle='--', marker='s', label='Partner did not help')
-        ax_h.set_xlabel('Turn'); ax_h.set_ylabel('Helping Rate'); ax_h.set_title('Human')
-        ax_h.set_xticks(range(1, 11)); ax_h.set_ylim(0, ylim_max)
-        ax_h.legend(fontsize=8)
+   
+
     plt.tight_layout()
-    path = os.path.join(FIGURE_DIR, 'fig_metric5_reciprocity.png')
+    suffix = f"_{tag}" if tag else ""
+    path = os.path.join(FIGURE_DIR, f'fig_metric5_reciprocity{suffix}.png')
     plt.savefig(path, dpi=300, bbox_inches='tight'); print(f"Saved {path}"); plt.close()
 
 
@@ -282,7 +247,8 @@ def plot_overall_helping_rate(tag=""):
     ax.legend()
     ax.set_ylim(0, max(values + [human_rate]) * 1.2)
     plt.tight_layout()
-    path = os.path.join(FIGURE_DIR, 'fig_overall_helping_rate.png')
+    suffix = f"_{tag}" if tag else ""
+    path = os.path.join(FIGURE_DIR, f'fig_overall_helping_rate{suffix}.png')
     plt.savefig(path, dpi=300, bbox_inches='tight'); print(f"Saved {path}"); plt.close()
 
 
@@ -321,7 +287,8 @@ def plot_fit_scores(tag=""):
                     color='black' if np.isnan(val) or abs(val) < 0.7 else 'white')
     plt.colorbar(im, ax=ax, label='Pearson r')
     plt.tight_layout()
-    path = os.path.join(FIGURE_DIR, 'fig_fit_scores.png')
+    suffix = f"_{tag}" if tag else ""
+    path = os.path.join(FIGURE_DIR, f'fig_fit_scores{suffix}.png')
     plt.savefig(path, dpi=300, bbox_inches='tight'); print(f"Saved {path}"); plt.close()
     print("\nFit Score Summary (Pearson r):")
     header = f"{'Mode':<20}" + "".join(f"{l.replace(chr(10),' '):>16}" for l in metric_labels) + f"{'Mean r':>10}"
